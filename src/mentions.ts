@@ -1,4 +1,4 @@
-import { MENTION_HANDLES } from "../config.js";
+import { MENTION_HANDLES } from "./config.js";
 
 // Create regex for detecting mentions
 const createMentionRegex = (): RegExp => {

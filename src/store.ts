@@ -1,6 +1,6 @@
 import Database from "better-sqlite3";
 import { DateTime } from "luxon";
-import { SF_TZ } from "@/constant.js";
+import { EVENT_TZ } from "@/constant.js";
 
 let db: Database.Database | null = null;
 
@@ -116,7 +116,7 @@ export function cancelAllRemindersForInbox(inboxId: string): number {
 export function getDueReminders(): Reminder[] {
   if (!db) throw new Error("Database not initialized");
 
-  const now = DateTime.now().setZone(SF_TZ);
+  const now = DateTime.now().setZone(EVENT_TZ);
 
   const stmt = db.prepare(`
     SELECT * FROM reminders 
@@ -125,6 +125,12 @@ export function getDueReminders(): Reminder[] {
   `);
 
   return stmt.all(now.toISO()) as Reminder[];
+}
+
+// Initialize database
+export function initDb(): void {
+  const dbPath = "reminders.db3";
+  openRemindersDb(dbPath);
 }
 
 export function closeDb(): void {

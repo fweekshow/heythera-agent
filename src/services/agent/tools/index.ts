@@ -1,19 +1,30 @@
-import { fetchLogisticsDetails, fetchVenueDetails, fetchHotelsDetails } from "./logistics.js";
-import { addReminder, listReminders, deleteReminder } from "./reminder.js";
-import { fetchScheduleDetails, fetchDaySchedule } from "./schedule.js";
+import { fetchBasecampInfo } from "./logistics.js";
+import { 
+  setReminder, 
+  fetchAllPendingReminders, 
+  cancelPendingReminder,
+  cancelAllReminders,
+  fetchCurrentDateTime 
+} from "./reminder.js";
+import { fetchBasecampScheduleDetails, getSpecificDaySchedule } from "./schedule.js";
+import { sendWelcomeMessage, showHelp } from "./welcome.js";
 
 export const DEFAULT_TOOLS = [
-  // Schedule tools
-  fetchScheduleDetails,
-  fetchDaySchedule,
+  // Welcome and help tools
+  sendWelcomeMessage,
+  showHelp,
   
-  // Logistics tools
-  fetchLogisticsDetails,
-  fetchVenueDetails,
-  fetchHotelsDetails,
+  // Schedule tools
+  fetchBasecampScheduleDetails,
+  getSpecificDaySchedule,
+  
+  // Basecamp info
+  fetchBasecampInfo,
   
   // Reminder tools
-  addReminder,
-  listReminders,
-  deleteReminder,
+  fetchCurrentDateTime,
+  setReminder,
+  fetchAllPendingReminders,
+  cancelPendingReminder,
+  cancelAllReminders,
 ];

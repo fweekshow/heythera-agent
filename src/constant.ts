@@ -1,49 +1,36 @@
 import { DateTime } from "luxon";
 
-// Venue and location
-export const VENUE_NAME = "The Howard SF";
-export const VENUE_ADDRESS = "661 Howard St, San Francisco, CA 94105";
-export const VENUE_MAPS_URL =
-  "https://maps.google.com/?q=661+Howard+St,+San+Francisco,+CA+94105";
+// Note: Venue details not yet announced on official website
 
 // URLs and handles
-export const SUMMIT_URL = "https://www.onchainsummit.io";
-export const TICKETS_URL = "https://payindimes.com/events/1/tickets";
-export const X_HANDLE = "@onchainsf";
+export const BASECAMP_URL = "https://www.basecamp2025.xyz";
+export const X_HANDLE = "@base";
 
-// Timezone
-export const SF_TZ = "America/Los_Angeles";
+// Timezone - Using Eastern Time as default (can be auto-detected)
+export const EVENT_TZ = "America/New_York";
 
 //Default Reply
 export const DEFAULT_REPLY =
-  "Oops! I didn’t understand your query. Could you please rephrase or provide more details?😅";
+  "Oops! I didn't understand your query. Could you please rephrase or provide more details?😅";
 
-// Event dates (August 20-24, 2025)
+// Event dates (September 14-16, 2025)
 export const EVENT_DATES = {
-  wednesday: DateTime.fromObject(
-    { year: 2025, month: 8, day: 20 },
-    { zone: SF_TZ },
-  ),
-  thursday: DateTime.fromObject(
-    { year: 2025, month: 8, day: 21 },
-    { zone: SF_TZ },
-  ),
-  friday: DateTime.fromObject(
-    { year: 2025, month: 8, day: 22 },
-    { zone: SF_TZ },
-  ),
-  saturday: DateTime.fromObject(
-    { year: 2025, month: 8, day: 23 },
-    { zone: SF_TZ },
-  ),
   sunday: DateTime.fromObject(
-    { year: 2025, month: 8, day: 24 },
-    { zone: SF_TZ },
+    { year: 2025, month: 9, day: 14 },
+    { zone: EVENT_TZ },
+  ),
+  monday: DateTime.fromObject(
+    { year: 2025, month: 9, day: 15 },
+    { zone: EVENT_TZ },
+  ),
+  tuesday: DateTime.fromObject(
+    { year: 2025, month: 9, day: 16 },
+    { zone: EVENT_TZ },
   ),
 };
 
-// Helper function to get current SF date
-export const sfDate = () => DateTime.now().setZone(SF_TZ);
+// Helper function to get current event timezone date
+export const eventDate = () => DateTime.now().setZone(EVENT_TZ);
 
 // Helper function to get event date for a day
 export const eventDateFor = (day: string) => {

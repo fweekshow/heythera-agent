@@ -1,83 +1,89 @@
 import { tool } from "@langchain/core/tools";
 import { DateTime } from "luxon";
-import { SF_TZ } from "@/constant.js";
+import { EVENT_TZ } from "@/constant.js";
 
 const SCHEDULE_DATA = {
-  wednesday: {
-    title: "Wednesday — HACKATHON INVITE ONLY:",
-    events: [
-      "8:00am - 9:00am: Morning Welcome . Announcements . Breakfast Served",
-      "9:00am - 12:30pm: Morning Build Session",
-      "12:30pm - 1:30pm: Lunch Served",
-      "1:30pm - 4:00pm: Afternoon Build Session",
-      "4:00pm - 5:00pm: Break Before Dinner",
-      "6:00 - 8:00: Kevin and Chintan Prepare Family Meal",
-      "8:00 - 12:00: Space is open for building and connecting.",
-    ],
-  },
-  thursday: {
-    title: "Thursday — HACKATHON INVITE ONLY UNTIL HAPPY HOUR:",
-    events: [
-      "8:00am - 9:00am: Breakfast Served",
-      "9:00am - 12:30pm: Morning Build Session",
-      "12:30pm - 1:30pm: Lunch Served",
-      "1:30pm - 4:00pm: Afternoon Build Session",
-      "4:00pm - 4:30pm: Break Before Art Show and Happy Hour",
-      "4:30 - 8:00: OSC Art Show . Dinner . Open Bar . DJ Big Kev",
-    ],
-  },
-  friday: {
-    title: "Friday — HACKATHON INVITE ONLY UNTIL HAPPY HOUR:",
-    events: [
-      "8:00am: Doors Open . Breakfast Served",
-      "9:00am - 12:30pm: Morning Build Session",
-      "12:30pm - 1:30pm: Lunch Served",
-      "1:30pm - 3:00pm: Afternoon Build Session",
-      "3:00pm - 4:00pm: Build Submission - Conclusion of Hackathon",
-      "5:00pm - 9:00pm: OSC Opening Happy Hour . DJ Mark Divita",
-      "• ROOR Poker Tournament",
-      "• 9:30pm doors open",
-      "• ROOR OSC Party - Mustache Harbor",
-      "• 111 Minna . SF, CA 94105",
-    ],
-  },
-  saturday: {
-    title: "Saturday:",
-    events: [
-      "10:00am: Doors Open . Breakfast Served",
-      "10:00am - 5:00pm: Builder Demo Hall",
-      "12:30pm - 1:30pm: Lunch Served",
-      "1:30pm - 5:00pm: Main Stage",
-      "7:00pm - 11:00pm: OSC Casino Night . Golden State Warriors . Hosted by Franco Finn",
-    ],
-  },
   sunday: {
-    title: "Sunday:",
+    title: "Sunday 9/14 — Arrival Day",
     events: [
-      "10:00am - 12:00pm: San Francisco Brunch Served",
-      "12:00pm - 7:00pm: Film3 Festival - Festival Tickets",
+      "All day: Guest arrivals",
+      "6:00–10:00pm: Welcome Reception",
+    ],
+  },
+  monday: {
+    title: "Monday 9/15 — Day 1",
+    events: [
+      "8:00–10:00am: Breakfast + AM connection",
+      "10:00–11:00am: Kickoff & Featured Programming",
+      "11:00am–1:00pm: Curated Sessions",
+      "1:00–3:00pm: Lunch",
+      "3:00–7:00pm: Open Day Activities",
+      "7:00–9:00pm: Dinner",
+      "9:00pm+: Evening Activities",
+    ],
+  },
+  tuesday: {
+    title: "Tuesday 9/16 — Day 2 & Closing",
+    events: [
+      "8:00–10:00am: Breakfast",
+      "10:00–11:00am: Featured Programming",
+      "11:00am–1:00pm: Curated Sessions",
+      "1:00–3:00pm: Lunch",
+      "3:00–7:00pm: Open Day Activities",
+      "7:00–9:00pm: Dinner",
+      "9:00pm+: Closing Activities",
     ],
   },
 };
 
-export const fetchSummitScheduleDetails = tool(
+export const fetchBasecampScheduleDetails = tool(
   () => {
-    const today = DateTime.now().setZone(SF_TZ);
+    const today = DateTime.now().setZone(EVENT_TZ);
+    let scheduleText = `Basecamp 2025 Schedule\n`;
+    scheduleText += `Event Duration: September 14-16, 2025\n\n`;
+    scheduleText += `Today's Date: ${today.toFormat("LLLL d, yyyy")}\n`;
+    scheduleText += `Today's Day: ${today.toFormat("cccc")}\n`;
+    scheduleText += `Current Time: ${today.toFormat("hh:mm a ZZZZ")}\n\n`;
 
-    return `
-    Summit Duration - August 20 (Wednesday) - August 24 (Sunday)
+    // Add each day's schedule in a readable format
+    Object.entries(SCHEDULE_DATA).forEach(([day, data]) => {
+      scheduleText += `${data.title}\n`;
+      data.events.forEach((event) => {
+        scheduleText += `- ${event}\n`;
+      });
+      scheduleText += `\n`;
+    });
 
-    Today's Date: ${today.toFormat("LLLL d, yyyy")}
-    Today's Day: ${today.toFormat("cccc")}
-    Current Time: ${today.toFormat("hh:mm a ZZZZ")}
-
-    Complete Schedule:
-    ${JSON.stringify(SCHEDULE_DATA)}
-    `;
+    return scheduleText;
   },
   {
-    name: "FetchSummitSchedules",
+    name: "FetchBasecampScheduleDetails",
     description:
-      "Retrieves the full Onchain Summit schedule. Includes today’s date and weekday (based on San Francisco timezone), today’s events, and the complete multi-day program with all scheduled activities",
+      "ALWAYS use this tool for ANY schedule question - whether asking for the full schedule, specific days like 'Monday', 'Tuesday', 'Sunday', or specific events. Contains complete accurate schedule for September 14-16, 2025 (Sunday-Tuesday). Use this tool first, then extract the relevant information from the response.",
   },
+);
+
+export const getSpecificDaySchedule = tool(
+  ({ day }: { day: string }) => {
+    const dayKey = day.toLowerCase();
+    const scheduleData = SCHEDULE_DATA[dayKey as keyof typeof SCHEDULE_DATA];
+    
+    if (!scheduleData) {
+      return `Invalid day. Basecamp 2025 runs September 14-16, 2025. Available days are:
+- Sunday (September 14) - Arrival Day
+- Monday (September 15) - Day 1  
+- Tuesday (September 16) - Day 2 & Closing`;
+    }
+
+    let result = `${scheduleData.title}\n\n`;
+    scheduleData.events.forEach((event) => {
+      result += `- ${event}\n`;
+    });
+    
+    return result;
+  },
+  {
+    name: "GetSpecificDaySchedule",
+    description: "Gets the schedule for a specific day (Sunday, Monday, or Tuesday) during Basecamp 2025. Use when someone asks about schedule for a particular day like 'What's the schedule on Monday?' or 'Tuesday schedule'. Parameter: day (string) - The day to get schedule for: 'Sunday', 'Monday', or 'Tuesday'",
+  }
 );
