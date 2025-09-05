@@ -144,7 +144,7 @@ async function handleMessage(message: DecodedMessage, client: Client) {
                 // Small delay to avoid rate limiting
                 await new Promise(resolve => setTimeout(resolve, 100));
               }
-            } catch (error) {
+            } catch (error: any) {
               console.error(`❌ Failed to send broadcast to conversation ${conv.id}:`, error);
               errorCount++;
             }
@@ -155,7 +155,7 @@ async function handleMessage(message: DecodedMessage, client: Client) {
           console.log(`📢 Broadcast completed: ${successCount} success, ${errorCount} errors`);
           return;
           
-        } catch (error) {
+        } catch (error: any) {
           await conversation.send(`❌ Failed to send broadcast: ${error.message}`);
           console.error("❌ Broadcast failed:", error);
           return;
@@ -279,35 +279,35 @@ async function main() {
     console.log("📡 Starting conversation stream...");
     const conversationStream = await client.conversations.stream();
     
-    // Handle new conversations in background
-    (async () => {
-      for await (const conversation of conversationStream) {
-        try {
-          const isGroup = conversation instanceof Group;
-          
-          if (!isGroup) {
-            // Send welcome message to new DMs
-            const welcomeMessage = `Hi! I'm the Basecamp 2025 Concierge - your helpful assistant for Basecamp. I can help you with:
+    // Handle new conversations in background (disabled to prevent double messages)
+    // (async () => {
+    //   for await (const conversation of conversationStream) {
+    //     try {
+    //       const isGroup = conversation instanceof Group;
+    //       
+    //       if (!isGroup) {
+    //         // Send welcome message to new DMs
+    //         const welcomeMessage = `Hi! I'm the Basecamp 2025 Concierge - your helpful assistant for Basecamp. I can help you with:
 
-• Schedule: Get event times, daily agendas for Sept 14-16, 2025
-• General Info: Event details, logistics, and FAQ
-• Reminders: Set personal reminders for sessions and activities
+    // • Schedule: Get event times, daily agendas for Sept 14-16, 2025
+    // • General Info: Event details, logistics, and FAQ
+    // • Reminders: Set personal reminders for sessions and activities
 
-What would you like to know about Basecamp 2025?
+    // What would you like to know about Basecamp 2025?
 
-Official site: https://www.basecamp2025.xyz 
-Updates: @base`;
+    // Official site: https://www.basecamp2025.xyz 
+    // Updates: @base`;
 
-            if (conversation) {
-              await conversation.send(welcomeMessage);
-              console.log(`✅ Sent welcome message to new DM conversation`);
-            }
-          }
-        } catch (error) {
-          console.error("❌ Error sending welcome message:", error);
-        }
-      }
-    })();
+    //         if (conversation) {
+    //           await conversation.send(welcomeMessage);
+    //           console.log(`✅ Sent welcome message to new DM conversation`);
+    //         }
+    //       }
+    //     } catch (error) {
+    //       console.error("❌ Error sending welcome message:", error);
+    //     }
+    //   }
+    // })();
 
     // Start streaming messages
     console.log("📡 Starting message stream...");
