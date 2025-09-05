@@ -72,27 +72,19 @@ async function handleMessage(message: DecodedMessage, client: Client) {
     }
 
     const isGroup = conversation instanceof Group;
-    let shouldRespond = false;
     let cleanContent = messageContent;
 
-    if (isGroup) {
-      // In groups, only respond if mentioned
-      if (isMentioned(messageContent)) {
-        shouldRespond = true;
-        cleanContent = removeMention(messageContent);
-        if (DEBUG_LOGS) {
-          console.log("👋 Mentioned in group, will respond");
-        }
+    // Always respond to all messages, but clean mentions from groups
+    if (isGroup && isMentioned(messageContent)) {
+      cleanContent = removeMention(messageContent);
+      if (DEBUG_LOGS) {
+        console.log("👋 Mentioned in group, will respond");
       }
-    } else {
-      // In DMs, always respond
-      shouldRespond = true;
+    } else if (!isGroup) {
       if (DEBUG_LOGS) {
         console.log("💬 DM received, will respond");
       }
-    }
-
-    if (!shouldRespond) {
+    } else if (isGroup && !isMentioned(messageContent)) {
       if (DEBUG_LOGS) {
         console.log("⏭️ Not mentioned in group, skipping");
       }
@@ -112,6 +104,27 @@ async function handleMessage(message: DecodedMessage, client: Client) {
 
     try {
       console.log(`🤖 Processing message: "${cleanContent}"`);
+      
+      // Check for DM me command to establish DM connection
+      if (cleanContent.toLowerCase().includes("dm me") || cleanContent.toLowerCase().includes("start dm")) {
+        try {
+          console.log(`📱 DM request from ${senderAddress}, attempting to establish DM connection...`);
+          
+          // Try to create DM with the sender
+          const dmConversation = await client.conversations.newDm(senderAddress);
+          const dmMessage = `Hi! I'm starting this DM as requested. You can now message me directly here for private conversations about Basecamp 2025!`;
+          
+          await dmConversation.send(dmMessage);
+          await conversation.send(`✅ DM started! Check your direct messages.`);
+          console.log(`✅ Established DM with ${senderAddress}`);
+          return;
+          
+        } catch (dmError: any) {
+          await conversation.send(`❌ Failed to start DM: ${dmError.message}`);
+          console.error(`❌ DM establishment failed:`, dmError);
+          return;
+        }
+      }
       
       // Check for manual message command (admin only - using inbox ID or wallet address)
       const isAdmin = senderInboxId === "eb180ab2a24df3e54a78b065c89be3cbd0bd22ef5e34654c481f0cef7eab4b47" || 
