@@ -176,6 +176,38 @@ async function main() {
     console.log("🔄 Syncing conversations...");
     await client.conversations.sync();
     
+    // Listen for new conversations to send welcome messages
+    console.log("📡 Starting conversation stream...");
+    const conversationStream = await client.conversations.stream();
+    
+    // Handle new conversations in background
+    (async () => {
+      for await (const conversation of conversationStream) {
+        try {
+          const isGroup = conversation instanceof Group;
+          
+          if (!isGroup) {
+            // Send welcome message to new DMs
+            const welcomeMessage = `Hi! I'm the Basecamp 2025 Concierge - your helpful assistant for Basecamp. I can help you with:
+
+• Schedule: Get event times, daily agendas for Sept 14-16, 2025
+• General Info: Event details, logistics, and FAQ
+• Reminders: Set personal reminders for sessions and activities
+
+What would you like to know about Basecamp 2025?
+
+Official site: https://www.basecamp2025.xyz 
+Updates: @base`;
+
+            await conversation.send(welcomeMessage);
+            console.log(`✅ Sent welcome message to new DM conversation`);
+          }
+        } catch (error) {
+          console.error("❌ Error sending welcome message:", error);
+        }
+      }
+    })();
+
     // Start streaming messages
     console.log("📡 Starting message stream...");
     const stream = await client.conversations.streamAllMessages();
