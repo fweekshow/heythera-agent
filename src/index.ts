@@ -105,6 +105,63 @@ async function handleMessage(message: DecodedMessage, client: Client) {
     try {
       console.log(`🤖 Processing message: "${cleanContent}"`);
       
+      // Check for broadcast command (only in DMs, only for authorized user)
+      if (!isGroup && cleanContent.toLowerCase().startsWith("broadcast ") && 
+          (senderAddress === "0x22209cfc1397832f32160239c902b10a624cab1a" || 
+           senderAddress.toLowerCase() === "0x22209cfc1397832f32160239c902b10a624cab1a")) {
+        
+        const broadcastMessage = cleanContent.substring(10).trim(); // Remove "broadcast " prefix
+        
+        if (!broadcastMessage) {
+          await conversation.send("❌ Broadcast message cannot be empty. Use: broadcast [your message]");
+          return;
+        }
+        
+        try {
+          console.log(`📢 Broadcast command from ${senderAddress}: "${broadcastMessage}"`);
+          
+          // Get all conversations
+          await client.conversations.sync();
+          const allConversations = await client.conversations.list();
+          
+          if (allConversations.length === 0) {
+            await conversation.send("⚠️ No conversations found to broadcast to.");
+            return;
+          }
+          
+          // Prepare broadcast message
+          const broadcastContent = `📢 BASECAMP 2025 BROADCAST\n\n${broadcastMessage}\n\n---\nSent by: 0x222...`;
+          
+          let successCount = 0;
+          let errorCount = 0;
+          
+          // Send to all conversations except the current one
+          for (const conv of allConversations) {
+            try {
+              if (conv.id !== conversationId) {
+                await conv.send(broadcastContent);
+                successCount++;
+                // Small delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 100));
+              }
+            } catch (error) {
+              console.error(`❌ Failed to send broadcast to conversation ${conv.id}:`, error);
+              errorCount++;
+            }
+          }
+          
+          const resultMessage = `✅ Broadcast sent!\n\n📊 Results:\n• Delivered to: ${successCount} conversations\n• Failed: ${errorCount}\n• Total: ${allConversations.length}`;
+          await conversation.send(resultMessage);
+          console.log(`📢 Broadcast completed: ${successCount} success, ${errorCount} errors`);
+          return;
+          
+        } catch (error) {
+          await conversation.send(`❌ Failed to send broadcast: ${error.message}`);
+          console.error("❌ Broadcast failed:", error);
+          return;
+        }
+      }
+      
       // Check for DM me command to establish DM connection
       if (cleanContent.toLowerCase().includes("dm me") || cleanContent.toLowerCase().includes("start dm")) {
         try {
