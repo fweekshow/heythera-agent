@@ -199,10 +199,8 @@ What would you like to know about Basecamp 2025?
 Official site: https://www.basecamp2025.xyz 
 Updates: @base`;
 
-            if (conversation) {
-              await conversation.send(welcomeMessage);
-              console.log(`✅ Sent welcome message to new DM conversation`);
-            }
+            await conversation.send(welcomeMessage);
+            console.log(`✅ Sent welcome message to new DM conversation`);
           }
         } catch (error) {
           console.error("❌ Error sending welcome message:", error);
