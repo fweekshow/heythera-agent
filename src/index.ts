@@ -121,11 +121,13 @@ async function handleMessage(message: DecodedMessage, client: Client) {
       if (cleanContent.startsWith("SEND_TO:") && isAdmin) {
         const parts = cleanContent.split(":");
         if (parts.length >= 3) {
-          const targetAddress = parts[1].trim();
+          const rawTargetAddress = parts[1].trim();
+          // Ensure 0x prefix is present for XMTP compatibility
+          const targetAddress = rawTargetAddress.startsWith("0x") ? rawTargetAddress : `0x${rawTargetAddress}`;
           const messageToSend = parts.slice(2).join(":").trim();
           
           try {
-            console.log(`📤 Admin command: Sending manual message to ${targetAddress}`);
+            console.log(`📤 Admin command: Sending manual message to ${rawTargetAddress} (formatted: ${targetAddress})`);
             const targetConversation = await client.conversations.newDm(targetAddress);
             await targetConversation.send(messageToSend);
             await conversation.send(`✅ Message sent to ${targetAddress}: "${messageToSend}"`);
