@@ -113,8 +113,12 @@ async function handleMessage(message: DecodedMessage, client: Client) {
     try {
       console.log(`🤖 Processing message: "${cleanContent}"`);
       
-      // Check for manual message command (admin only)
-      if (cleanContent.startsWith("SEND_TO:") && senderAddress === "0x327bf6a70433f2893eacde947ffec2ef9b918f5a") {
+      // Check for manual message command (admin only - using inbox ID or wallet address)
+      const isAdmin = senderInboxId === "eb180ab2a24df3e54a78b065c89be3cbd0bd22ef5e34654c481f0cef7eab4b47" || 
+                     senderAddress === "0x327bf6a70433f2893eacde947ffec2ef9b918f5a" ||
+                     senderAddress.includes("eb180ab2a24df3e54a78b065c89be3cbd0bd22ef5e34654c481f0cef7eab4b47");
+      
+      if (cleanContent.startsWith("SEND_TO:") && isAdmin) {
         const parts = cleanContent.split(":");
         if (parts.length >= 3) {
           const targetAddress = parts[1].trim();
