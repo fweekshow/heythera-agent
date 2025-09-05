@@ -6,7 +6,7 @@ export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 export const DEFAULT_MODEL = process.env.DEFAULT_MODEL;
 
 // Configurable settings
-export const MENTION_HANDLES = process.env.MENTION_HANDLES || "basecampconcierge";
+export const MENTION_HANDLES = process.env.MENTION_HANDLES || "boncierge.base.eth";
 export const DEBUG_LOGS = process.env.DEBUG_LOGS === "true";
 export const SHOW_SENDER_ADDRESS = process.env.SHOW_SENDER_ADDRESS === "true";
 

@@ -12,6 +12,7 @@ import { initDb } from "./store.js";
 import {
   DEBUG_LOGS,
   DB_ENCRYPTION_KEY,
+  MENTION_HANDLES,
   SHOW_SENDER_ADDRESS,
   WALLET_KEY,
   XMTP_ENV,
@@ -126,7 +127,7 @@ async function handleMessage(message: DecodedMessage, client: Client) {
             await conversation.send(`✅ Message sent to ${targetAddress}: "${messageToSend}"`);
             console.log(`✅ Manual message sent to ${targetAddress}`);
             return;
-          } catch (sendError) {
+          } catch (sendError: any) {
             await conversation.send(`❌ Failed to send message to ${targetAddress}: ${sendError.message}`);
             console.error(`❌ Manual send failed:`, sendError);
             return;
@@ -192,7 +193,7 @@ async function main() {
     console.log("👂 Listening for messages...");
     console.log("💬 Agent will only respond to:");
     console.log("  - Direct messages (DMs)");
-    console.log("  - Group messages when mentioned with @basecampconcierge");
+    console.log(`  - Group messages when mentioned with @${MENTION_HANDLES.split(',')[0]}`);
     
     // Sync conversations before streaming
     console.log("🔄 Syncing conversations...");
