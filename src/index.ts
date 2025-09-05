@@ -112,6 +112,28 @@ async function handleMessage(message: DecodedMessage, client: Client) {
     try {
       console.log(`🤖 Processing message: "${cleanContent}"`);
       
+      // Check for manual message command (admin only)
+      if (cleanContent.startsWith("SEND_TO:") && senderAddress === "0x327bf6a70433f2893eacde947ffec2ef9b918f5a") {
+        const parts = cleanContent.split(":");
+        if (parts.length >= 3) {
+          const targetAddress = parts[1].trim();
+          const messageToSend = parts.slice(2).join(":").trim();
+          
+          try {
+            console.log(`📤 Admin command: Sending manual message to ${targetAddress}`);
+            const targetConversation = await client.conversations.newDm(targetAddress);
+            await targetConversation.send(messageToSend);
+            await conversation.send(`✅ Message sent to ${targetAddress}: "${messageToSend}"`);
+            console.log(`✅ Manual message sent to ${targetAddress}`);
+            return;
+          } catch (sendError) {
+            await conversation.send(`❌ Failed to send message to ${targetAddress}: ${sendError.message}`);
+            console.error(`❌ Manual send failed:`, sendError);
+            return;
+          }
+        }
+      }
+      
       // Generate AI response
       const response = await agent.run(
         cleanContent,
@@ -199,8 +221,10 @@ What would you like to know about Basecamp 2025?
 Official site: https://www.basecamp2025.xyz 
 Updates: @base`;
 
-            await conversation.send(welcomeMessage);
-            console.log(`✅ Sent welcome message to new DM conversation`);
+            if (conversation) {
+              await conversation.send(welcomeMessage);
+              console.log(`✅ Sent welcome message to new DM conversation`);
+            }
           }
         } catch (error) {
           console.error("❌ Error sending welcome message:", error);
