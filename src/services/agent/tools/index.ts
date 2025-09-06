@@ -1,3 +1,4 @@
+// Removed broadcast tool - using simple function instead
 import { fetchBasecampInfo } from "./logistics.js";
 import { 
   setReminder, 
@@ -27,4 +28,6 @@ export const DEFAULT_TOOLS = [
   fetchAllPendingReminders,
   cancelPendingReminder,
   cancelAllReminders,
+  
+  // Broadcast tools removed - using direct function call
 ];

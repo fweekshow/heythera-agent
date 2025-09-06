@@ -2,6 +2,7 @@ import { Client, type Signer, type DecodedMessage, Group } from "@xmtp/node-sdk"
 import { createReminderDispatcher } from "./dispatcher.js";
 import { isMentioned, removeMention } from "./mentions.js";
 import { AIAgent } from "./services/agent/index.js";
+import { setBroadcastClient } from "./services/agent/tools/broadcast.js";
 import {
   createSigner,
   getDbPath,
@@ -105,61 +106,28 @@ async function handleMessage(message: DecodedMessage, client: Client) {
     try {
       console.log(`🤖 Processing message: "${cleanContent}"`);
       
-      // Check for broadcast command (only in DMs, only for authorized user)
-      if (!isGroup && cleanContent.toLowerCase().startsWith("broadcast ") && 
-          (senderAddress === "0x22209cfc1397832f32160239c902b10a624cab1a" || 
-           senderAddress.toLowerCase() === "0x22209cfc1397832f32160239c902b10a624cab1a")) {
+      // Check for broadcast command and handle directly
+      if (!isGroup && cleanContent.toLowerCase().startsWith("/broadcast ")) {
+        const broadcastMessage = cleanContent.substring(11).trim(); // Remove "/broadcast " prefix
         
-        const broadcastMessage = cleanContent.substring(10).trim(); // Remove "broadcast " prefix
-        
-        if (!broadcastMessage) {
-          await conversation.send("❌ Broadcast message cannot be empty. Use: broadcast [your message]");
-          return;
-        }
-        
+        // Handle broadcast directly with simple function
         try {
-          console.log(`📢 Broadcast command from ${senderAddress}: "${broadcastMessage}"`);
+          // Import the simple broadcast function
+          const { sendBroadcast } = await import("./services/agent/tools/broadcast.js");
           
-          // Get all conversations
-          await client.conversations.sync();
-          const allConversations = await client.conversations.list();
+          const result = await sendBroadcast(
+            broadcastMessage,
+            senderInboxId,
+            conversationId
+          );
           
-          if (allConversations.length === 0) {
-            await conversation.send("⚠️ No conversations found to broadcast to.");
-            return;
-          }
-          
-          // Prepare broadcast message
-          const broadcastContent = `📢 BASECAMP 2025 BROADCAST\n\n${broadcastMessage}\n\n---\nSent by: 0x222...`;
-          
-          let successCount = 0;
-          let errorCount = 0;
-          
-          // Send to all conversations except the current one
-          for (const conv of allConversations) {
-            try {
-              if (conv.id !== conversationId) {
-                await conv.send(broadcastContent);
-                successCount++;
-                // Small delay to avoid rate limiting
-                await new Promise(resolve => setTimeout(resolve, 100));
-              }
-            } catch (error: any) {
-              console.error(`❌ Failed to send broadcast to conversation ${conv.id}:`, error);
-              errorCount++;
-            }
-          }
-          
-          const resultMessage = `✅ Broadcast sent!\n\n📊 Results:\n• Delivered to: ${successCount} conversations\n• Failed: ${errorCount}\n• Total: ${allConversations.length}`;
-          await conversation.send(resultMessage);
-          console.log(`📢 Broadcast completed: ${successCount} success, ${errorCount} errors`);
-          return;
-          
-        } catch (error: any) {
-          await conversation.send(`❌ Failed to send broadcast: ${error.message}`);
-          console.error("❌ Broadcast failed:", error);
-          return;
+          await conversation.send(result);
+          console.log(`✅ Sent broadcast result: "${result}"`);
+        } catch (broadcastError: any) {
+          await conversation.send(`❌ Broadcast failed: ${broadcastError.message}`);
+          console.error("❌ Broadcast error:", broadcastError);
         }
+        return;
       }
       
       // Check for DM me command to establish DM connection
@@ -183,33 +151,6 @@ async function handleMessage(message: DecodedMessage, client: Client) {
         }
       }
       
-      // Check for manual message command (admin only - using inbox ID or wallet address)
-      const isAdmin = senderInboxId === "eb180ab2a24df3e54a78b065c89be3cbd0bd22ef5e34654c481f0cef7eab4b47" || 
-                     senderAddress === "0x327bf6a70433f2893eacde947ffec2ef9b918f5a" ||
-                     senderAddress.includes("eb180ab2a24df3e54a78b065c89be3cbd0bd22ef5e34654c481f0cef7eab4b47");
-      
-      if (cleanContent.startsWith("SEND_TO:") && isAdmin) {
-        const parts = cleanContent.split(":");
-        if (parts.length >= 3) {
-          const rawTargetAddress = parts[1].trim();
-          // Ensure 0x prefix is present for XMTP compatibility
-          const targetAddress = rawTargetAddress.startsWith("0x") ? rawTargetAddress : `0x${rawTargetAddress}`;
-          const messageToSend = parts.slice(2).join(":").trim();
-          
-          try {
-            console.log(`📤 Admin command: Sending manual message to ${rawTargetAddress} (formatted: ${targetAddress})`);
-            const targetConversation = await client.conversations.newDm(targetAddress);
-            await targetConversation.send(messageToSend);
-            await conversation.send(`✅ Message sent to ${targetAddress}: "${messageToSend}"`);
-            console.log(`✅ Manual message sent to ${targetAddress}`);
-            return;
-          } catch (sendError: any) {
-            await conversation.send(`❌ Failed to send message to ${targetAddress}: ${sendError.message}`);
-            console.error(`❌ Manual send failed:`, sendError);
-            return;
-          }
-        }
-      }
       
       // Generate AI response
       const response = await agent.run(
@@ -252,6 +193,9 @@ async function main() {
     
     await logAgentDetails(client);
 
+    // Initialize broadcast client
+    setBroadcastClient(client);
+
     // Initialize reminder dispatcher
     const reminderDispatcher = createReminderDispatcher();
     reminderDispatcher.start(client);
@@ -275,11 +219,7 @@ async function main() {
     console.log("🔄 Syncing conversations...");
     await client.conversations.sync();
     
-    // Listen for new conversations to send welcome messages
-    console.log("📡 Starting conversation stream...");
-    const conversationStream = await client.conversations.stream();
-    
-    // Handle new conversations in background (disabled to prevent double messages)
+    // Listen for new conversations to send welcome messages (disabled to prevent double messages)
     // (async () => {
     //   for await (const conversation of conversationStream) {
     //     try {

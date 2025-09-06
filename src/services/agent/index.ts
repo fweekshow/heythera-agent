@@ -33,6 +33,11 @@ export class AIAgent {
         isGroupMentioned: ${isGroupMention}
         Wallet Address: ${walletAddress}
         ${eventContext ? `Event Context: ${eventContext}` : ''}
+        
+        IMPORTANT: When using SendBroadcastMessage tool, use these exact values:
+        - walletAddress: ${walletAddress}
+        - currentConversationId: ${conversationId}
+        
         Query: ${query}`,
       ],
       ["placeholder", "{agent_scratchpad}"],
@@ -76,6 +81,7 @@ export class AIAgent {
         conversationId,
         isGroupMention: String(isGroupMention),
         walletAddress,
+        currentConversationId: conversationId,
       });
 
       return aiMessage.output as string;
