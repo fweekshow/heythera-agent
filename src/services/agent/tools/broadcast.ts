@@ -112,11 +112,10 @@ export async function previewBroadcast(
     });
 
     // Show preview and ask for confirmation
-    const previewMessage = `📋 BROADCAST PREVIEW` +
+    const previewMessage = `📋 BROADCAST PREVIEW\n\n` +
       `${broadcastContent}\n\n` +
       `📊 Will be sent to all active conversations.\n\n` +
-      `✅ Send "/confirm" to broadcast\n` +
-      `❌ Send "/cancel" to cancel`;
+      `Should I send the message? Respond "Yes" or "No"`;
 
     return previewMessage;
     

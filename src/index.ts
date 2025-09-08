@@ -130,8 +130,8 @@ async function handleMessage(message: DecodedMessage, client: Client) {
         return;
       }
       
-      // Check for broadcast confirmation command
-      if (!isGroup && cleanContent.toLowerCase() === "/confirm") {
+      // Check for broadcast confirmation command (Yes/No responses)
+      if (!isGroup && (cleanContent.toLowerCase() === "yes" || cleanContent.toLowerCase() === "/confirm")) {
         try {
           const { confirmBroadcast } = await import("./services/agent/tools/broadcast.js");
           
@@ -146,8 +146,8 @@ async function handleMessage(message: DecodedMessage, client: Client) {
         return;
       }
       
-      // Check for broadcast cancel command
-      if (!isGroup && cleanContent.toLowerCase() === "/cancel") {
+      // Check for broadcast cancel command (No responses)
+      if (!isGroup && (cleanContent.toLowerCase() === "no" || cleanContent.toLowerCase() === "/cancel")) {
         try {
           const { cancelBroadcast } = await import("./services/agent/tools/broadcast.js");
           
