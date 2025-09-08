@@ -9,18 +9,52 @@ export function setBroadcastClient(client: Client) {
   broadcastClient = client;
 }
 
-// Simple authorization using inbox IDs only
-function isAuthorizedBroadcaster(senderInboxId: string): boolean {
-  // AUTHORIZED INBOX IDs - Add new users here
-  const authorizedInboxIds = [
-    "132ddfd29e29096151775be0f3a9f996e059c10dd952b16d3749e9320f5ba424", // Your inbox ID
-    // Add more inbox IDs here for additional authorized users
+// Authorization using basenames - much easier to manage!
+async function isAuthorizedBroadcaster(senderInboxId: string): Promise<boolean> {
+  // AUTHORIZED BASENAMES - Add new users here by their basename
+  const authorizedBasenames = [
+    "0xteo.base.eth",
+    "claudia.base.eth", // Your basename
+    // Add more basenames here for additional authorized users
+    // "alice.base.eth",
+    // "bob.base.eth",
   ];
   
-  const isAuthorized = authorizedInboxIds.includes(senderInboxId);
-  
-  console.log(`🔐 Checking broadcast permission for inbox ${senderInboxId}: ${isAuthorized ? 'ALLOWED' : 'DENIED'}`);
-  return isAuthorized;
+  try {
+    if (!broadcastClient) {
+      console.log("⚠️ Broadcast client not available for authorization check");
+      return false;
+    }
+    
+    // Get the user's address from XMTP inbox state
+    const inboxState = await broadcastClient.preferences.inboxStateFromInboxIds([senderInboxId]);
+    const addressFromInboxId = inboxState[0]?.identifiers[0]?.identifier;
+    
+    if (!addressFromInboxId) {
+      console.log("⚠️ Could not resolve wallet address from inbox ID for authorization");
+      return false;
+    }
+    
+    // Ensure address is properly formatted
+    const formattedAddress = addressFromInboxId.toLowerCase().startsWith('0x') 
+      ? addressFromInboxId as `0x${string}`
+      : `0x${addressFromInboxId}` as `0x${string}`;
+    
+    // Try to resolve address to basename
+    const basename = await getName({ 
+      address: formattedAddress, 
+      chain: base 
+    });
+    
+    const isAuthorized = basename ? authorizedBasenames.includes(basename) : false;
+    
+    console.log(`🔐 Checking broadcast permission for ${basename || formattedAddress}: ${isAuthorized ? 'ALLOWED' : 'DENIED'}`);
+    return isAuthorized;
+    
+  } catch (error) {
+    console.error(`❌ Error checking broadcast authorization:`, error);
+    return false;
+  }
 }
 
 // Function to resolve inbox ID to basename with fallback to wallet address
@@ -97,8 +131,8 @@ export async function previewBroadcast(
       return "❌ Broadcast message cannot be empty. Use: /broadcast [your message]";
     }
 
-    // Check authorization using inbox ID (much simpler!)
-    if (!isAuthorizedBroadcaster(senderInboxId)) {
+    // Check authorization using basename
+    if (!(await isAuthorizedBroadcaster(senderInboxId))) {
       return "❌ Access denied. You are not authorized to send broadcast messages.";
     }
 
@@ -233,8 +267,8 @@ export async function sendBroadcast(
 
     console.log(`📋 Resolved inbox ID to wallet address: ${addressFromInboxId}`);
 
-    // Check authorization using the resolved wallet address
-    if (!isAuthorizedBroadcaster(addressFromInboxId)) {
+    // Check authorization using inbox ID
+    if (!(await isAuthorizedBroadcaster(senderInboxId))) {
       return "❌ Access denied. You are not authorized to send broadcast messages.";
     }
 
