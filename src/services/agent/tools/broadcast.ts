@@ -23,10 +23,10 @@ function isAuthorizedBroadcaster(senderInboxId: string): boolean {
   return isAuthorized;
 }
 
-// Function to resolve inbox ID to basename using OnchainKit
-async function resolveInboxIdToBasename(senderInboxId: string): Promise<string> {
+// Function to resolve inbox ID to basename with fallback to wallet address
+async function getSenderIdentifier(senderInboxId: string): Promise<string> {
   try {
-    console.log(`🔍 Resolving inbox ID ${senderInboxId} to basename...`);
+    console.log(`🔍 Resolving sender identifier for inbox ${senderInboxId}...`);
     
     if (!broadcastClient) {
       console.log("⚠️ Broadcast client not available");
@@ -49,20 +49,26 @@ async function resolveInboxIdToBasename(senderInboxId: string): Promise<string> 
       ? addressFromInboxId as `0x${string}`
       : `0x${addressFromInboxId}` as `0x${string}`;
     
-    // Resolve address to basename using OnchainKit
-    const basename = await getName({ 
-      address: formattedAddress, 
-      chain: base 
-    });
-    
-    // If basename exists, use it; otherwise fall back to truncated address
-    const displayName = basename || `${formattedAddress.slice(0, 6)}...${formattedAddress.slice(-4)}`;
-    
-    console.log(`✅ Final display name: ${displayName}`);
-    return displayName;
+    try {
+      // Try to resolve address to basename using OnchainKit
+      const basename = await getName({ 
+        address: formattedAddress, 
+        chain: base 
+      });
+      
+      // If basename exists, use it; otherwise fall back to truncated address
+      const displayName = basename || `${formattedAddress.slice(0, 6)}...${formattedAddress.slice(-4)}`;
+      
+      console.log(`✅ Final display name: ${displayName}`);
+      return displayName;
+      
+    } catch (basenameError) {
+      console.log(`⚠️ Basename resolution failed, using wallet address:`, basenameError);
+      return `${formattedAddress.slice(0, 6)}...${formattedAddress.slice(-4)}`;
+    }
     
   } catch (error) {
-    console.error(`❌ Failed to resolve basename for inbox ${senderInboxId}:`, error);
+    console.error(`❌ Failed to get sender identifier:`, error);
     return `inbox-${senderInboxId.slice(0, 6)}...`;
   }
 }
@@ -96,8 +102,8 @@ export async function previewBroadcast(
       return "❌ Access denied. You are not authorized to send broadcast messages.";
     }
 
-    // Resolve sender name
-    const senderName = await resolveInboxIdToBasename(senderInboxId);
+    // Get sender identifier
+    const senderName = await getSenderIdentifier(senderInboxId);
     
     // Format the broadcast content
     const broadcastContent = `📢 Announcement\n\n${message.trim()}\n\n---\nSent by: ${senderName}`;
@@ -232,8 +238,8 @@ export async function sendBroadcast(
       return "❌ Access denied. You are not authorized to send broadcast messages.";
     }
 
-    // Resolve inbox ID to basename using the corrected approach
-    const senderName = await resolveInboxIdToBasename(senderInboxId);
+    // Get sender identifier
+    const senderName = await getSenderIdentifier(senderInboxId);
 
     // Get all conversations
     await broadcastClient.conversations.sync();
