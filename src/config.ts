@@ -16,6 +16,9 @@ export const BASE_URL = process.env.BASE_URL;
 // Neynar API Configuration
 export const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
 
+// Coinbase OnchainKit API Configuration
+export const PUBLIC_ONCHAINKIT_API_KEY = process.env.PUBLIC_ONCHAINKIT_API_KEY;
+
 // Staking System Configuration
 export const STAKING_CONTRACT_ADDRESS = process.env.STAKING_CONTRACT_ADDRESS;
 export const USDC_CONTRACT_ADDRESS = process.env.USDC_CONTRACT_ADDRESS || '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';

@@ -1,6 +1,10 @@
 // Test script to check basename resolution with different approaches
 import { getName } from '@coinbase/onchainkit/identity';
 import { base, mainnet } from 'viem/chains';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 async function testBasenameResolution() {
   const testAddress = "0x22209cfc1397832f32160239c902b10a624cab1a";
