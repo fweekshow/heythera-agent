@@ -1,5 +1,5 @@
 import type { Client } from "@xmtp/node-sdk";
-import { getName } from '@coinbase/onchainkit/identity';
+import { createPublicClient, http } from 'viem';
 import { base } from 'viem/chains';
 
 // Store the client reference for broadcast functionality
@@ -50,10 +50,14 @@ async function getSenderIdentifier(senderInboxId: string): Promise<string> {
       : `0x${addressFromInboxId}` as `0x${string}`;
     
     try {
-      // Try to resolve address to basename using OnchainKit
-      const basename = await getName({ 
-        address: formattedAddress, 
-        chain: base 
+      // Try to resolve address to basename using viem
+      const publicClient = createPublicClient({
+        chain: base,
+        transport: http()
+      });
+      
+      const basename = await publicClient.getEnsName({
+        address: formattedAddress,
       });
       
       // If basename exists, use it; otherwise fall back to truncated address
