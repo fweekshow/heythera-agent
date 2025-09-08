@@ -106,26 +106,58 @@ async function handleMessage(message: DecodedMessage, client: Client) {
     try {
       console.log(`🤖 Processing message: "${cleanContent}"`);
       
-      // Check for broadcast command and handle directly
+      // Check for broadcast command and handle with preview
       if (!isGroup && cleanContent.toLowerCase().startsWith("/broadcast ")) {
         const broadcastMessage = cleanContent.substring(11).trim(); // Remove "/broadcast " prefix
         
-        // Handle broadcast directly with simple function
+        // Handle broadcast with preview/confirmation
         try {
-          // Import the simple broadcast function
-          const { sendBroadcast } = await import("./services/agent/tools/broadcast.js");
+          // Import the broadcast functions
+          const { previewBroadcast, confirmBroadcast } = await import("./services/agent/tools/broadcast.js");
           
-          const result = await sendBroadcast(
+          const result = await previewBroadcast(
             broadcastMessage,
             senderInboxId,
             conversationId
           );
           
           await conversation.send(result);
-          console.log(`✅ Sent broadcast result: "${result}"`);
+          console.log(`✅ Sent broadcast preview: "${result}"`);
         } catch (broadcastError: any) {
-          await conversation.send(`❌ Broadcast failed: ${broadcastError.message}`);
+          await conversation.send(`❌ Broadcast preview failed: ${broadcastError.message}`);
           console.error("❌ Broadcast error:", broadcastError);
+        }
+        return;
+      }
+      
+      // Check for broadcast confirmation command
+      if (!isGroup && cleanContent.toLowerCase() === "/confirm") {
+        try {
+          const { confirmBroadcast } = await import("./services/agent/tools/broadcast.js");
+          
+          const result = await confirmBroadcast(senderInboxId, conversationId);
+          
+          await conversation.send(result);
+          console.log(`✅ Broadcast confirmation result: "${result}"`);
+        } catch (confirmError: any) {
+          await conversation.send(`❌ Confirmation failed: ${confirmError.message}`);
+          console.error("❌ Confirmation error:", confirmError);
+        }
+        return;
+      }
+      
+      // Check for broadcast cancel command
+      if (!isGroup && cleanContent.toLowerCase() === "/cancel") {
+        try {
+          const { cancelBroadcast } = await import("./services/agent/tools/broadcast.js");
+          
+          const result = await cancelBroadcast(senderInboxId);
+          
+          await conversation.send(result);
+          console.log(`✅ Broadcast cancelled`);
+        } catch (cancelError: any) {
+          await conversation.send(`❌ Cancel failed: ${cancelError.message}`);
+          console.error("❌ Cancel error:", cancelError);
         }
         return;
       }
