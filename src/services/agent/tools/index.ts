@@ -11,7 +11,8 @@ import {
   fetchBasecampScheduleDetails, 
   getSpecificDaySchedule,
   getDayActivities,
-  getNightActivities 
+  getNightActivities,
+  getActivityTime
 } from "./schedule.js";
 import { sendWelcomeMessage, showHelp } from "./welcome.js";
 
@@ -25,6 +26,7 @@ export const DEFAULT_TOOLS = [
   getSpecificDaySchedule,
   getDayActivities,
   getNightActivities,
+  getActivityTime,
   
   // Basecamp info
   fetchBasecampInfo,

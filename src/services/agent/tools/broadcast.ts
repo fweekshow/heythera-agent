@@ -14,7 +14,8 @@ async function isAuthorizedBroadcaster(senderInboxId: string): Promise<boolean> 
   // AUTHORIZED BASENAMES - Add new users here by their basename
   const authorizedBasenames = [
     "0xteo.base.eth",
-    "claudia.base.eth", // Your basename
+    "claudia.base.eth",
+    "jesse.base.eth",
     // Add more basenames here for additional authorized users
     // "alice.base.eth",
     // "bob.base.eth",

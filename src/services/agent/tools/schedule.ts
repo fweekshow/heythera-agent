@@ -107,7 +107,7 @@ export const fetchBasecampScheduleDetails = tool(
   {
     name: "FetchBasecampScheduleDetails",
     description:
-      "Use this tool for general schedule questions - full schedule or specific days like 'Monday', 'Tuesday', 'Sunday', 'Wednesday'. For specific activity questions (day activities, night activities), use the specialized tools instead. Contains complete accurate schedule for September 14-17, 2025 (Sunday-Wednesday).",
+      "Use this tool for general schedule questions - full schedule or specific days like 'Monday', 'Tuesday', 'Sunday', 'Wednesday'. DO NOT use for specific activity questions like 'pickleball on Monday' - use GetDayActivities or GetNightActivities tools instead. Contains complete accurate schedule for September 14-17, 2025 (Sunday-Wednesday).",
   },
 );
 
@@ -178,7 +178,47 @@ export const getDayActivities = tool(
   },
   {
     name: "GetDayActivities",
-    description: "Gets the day activities for Monday or Tuesday. Use when someone asks about: 'day activities', 'daytime activities', 'what's happening during the day', OR when they mention specific day activities like 'yoga', 'pickleball', 'whiskey tasting', 'tattoo parlour', 'lawn games', 'mushroom lab', 'trail running', 'co-work', 'merch trading post'. ALWAYS use this tool when someone asks about or mentions pickleball specifically. Parameters: day (string) - 'Monday' or 'Tuesday' (default Monday if not specified), activity (optional string) - the specific activity they mentioned like 'pickleball'",
+    description: "CRITICAL: Use this tool whenever someone mentions ANY specific activity + day combination like 'pickleball on Monday', 'yoga on Tuesday', 'whiskey tasting', etc. Also use for general day activity questions. This tool provides specific times and details for activities. Activities include: yoga, pickleball, whiskey tasting, tattoo parlour, lawn games, mushroom lab, trail running, co-work, merch trading post. Parameters: day (string) - 'Monday' or 'Tuesday' (extract from user message or default Monday), activity (optional string) - the specific activity they mentioned",
+  }
+);
+
+export const getActivityTime = tool(
+  ({ activity, day }: { activity: string; day?: string }) => {
+    const searchDay = day?.toLowerCase() || 'monday';
+    const scheduleData = SCHEDULE_DATA[searchDay as keyof typeof SCHEDULE_DATA] as any;
+    
+    if (!scheduleData) {
+      return `Please specify which day you're asking about: Monday or Tuesday.`;
+    }
+    
+    const activityLower = activity.toLowerCase();
+    let foundActivity = '';
+    
+    // Search in day activities
+    if (scheduleData.dayActivities) {
+      const dayMatch = scheduleData.dayActivities.find((item: string) => 
+        item.toLowerCase().includes(activityLower)
+      );
+      if (dayMatch) foundActivity = dayMatch;
+    }
+    
+    // Search in night activities
+    if (!foundActivity && scheduleData.nightActivities) {
+      const nightMatch = scheduleData.nightActivities.find((item: string) => 
+        item.toLowerCase().includes(activityLower)
+      );
+      if (nightMatch) foundActivity = nightMatch;
+    }
+    
+    if (foundActivity) {
+      return `🎯 ${activity} schedule: ${foundActivity}`;
+    }
+    
+    return `I couldn't find specific timing for "${activity}". Try asking about day activities or night activities for ${searchDay === 'monday' ? 'Monday' : 'Tuesday'}!`;
+  },
+  {
+    name: "GetActivityTime",
+    description: "Use when someone asks about timing for a specific activity like 'What time is pickleball?', 'When is yoga?', 'What time?'. Parameters: activity (string) - the activity they're asking about, day (optional string) - Monday or Tuesday",
   }
 );
 

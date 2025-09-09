@@ -42,6 +42,68 @@ initDb();
 // Initialize AI agent
 const agent = new AIAgent();
 
+// Conversation memory storage (per user)
+interface ConversationEntry {
+  userMessage: string;
+  botResponse: string;
+  timestamp: Date;
+}
+
+const conversationHistory = new Map<string, ConversationEntry[]>();
+
+// Helper functions for conversation memory
+function addToConversationHistory(senderInboxId: string, userMessage: string, botResponse: string) {
+  const history = conversationHistory.get(senderInboxId) || [];
+  
+  // Add new entry
+  history.push({
+    userMessage,
+    botResponse,
+    timestamp: new Date()
+  });
+  
+  // Keep only last 3 exchanges
+  if (history.length > 3) {
+    history.shift();
+  }
+  
+  conversationHistory.set(senderInboxId, history);
+}
+
+function getConversationContext(senderInboxId: string): string {
+  const history = conversationHistory.get(senderInboxId) || [];
+  
+  if (history.length === 0) {
+    return "";
+  }
+  
+  let context = "Recent conversation context:\n";
+  history.forEach((entry, index) => {
+    context += `User: ${entry.userMessage}\nBot: ${entry.botResponse}\n`;
+  });
+  context += "Current message:\n";
+  
+  return context;
+}
+
+// Clean up old conversations (older than 1 hour)
+function cleanupOldConversations() {
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  
+  for (const [senderInboxId, history] of conversationHistory.entries()) {
+    const recentHistory = history.filter(entry => entry.timestamp > oneHourAgo);
+    
+    if (recentHistory.length === 0) {
+      conversationHistory.delete(senderInboxId);
+    } else {
+      conversationHistory.set(senderInboxId, recentHistory);
+    }
+  }
+}
+
+// Run cleanup every 30 minutes
+setInterval(cleanupOldConversations, 30 * 60 * 1000);
+
 async function handleMessage(message: DecodedMessage, client: Client) {
   try {
     const messageContent = message.content as string;
@@ -184,9 +246,13 @@ async function handleMessage(message: DecodedMessage, client: Client) {
       }
       
       
+      // Get conversation context for this user
+      const conversationContext = getConversationContext(senderInboxId);
+      const messageWithContext = conversationContext + cleanContent;
+      
       // Generate AI response
       const response = await agent.run(
-        cleanContent,
+        messageWithContext,
         senderInboxId,
         conversationId,
         isGroup,
@@ -196,6 +262,9 @@ async function handleMessage(message: DecodedMessage, client: Client) {
       if (response) {
         await conversation.send(response);
         console.log(`✅ Sent response: "${response}"`);
+        
+        // Store this exchange in conversation history
+        addToConversationHistory(senderInboxId, cleanContent, response);
       }
     } catch (error) {
       console.error("❌ Error generating or sending response:", error);
