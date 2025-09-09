@@ -21,11 +21,15 @@ async function revokeInstallations() {
   try {
     console.log("🔄 Starting installation revocation process...");
     
+    if (!WALLET_KEY || !DB_ENCRYPTION_KEY) {
+      throw new Error("WALLET_KEY and DB_ENCRYPTION_KEY are required");
+    }
+    
     const signer = createSigner(WALLET_KEY);
     const encryptionKey = getEncryptionKeyFromHex(DB_ENCRYPTION_KEY);
     
     // Get the wallet address
-    const identifier = signer.getIdentifier();
+    const identifier = await signer.getIdentifier();
     console.log(`📋 Wallet address: ${identifier.identifier}`);
     
     // Use the known inbox ID from the error message
