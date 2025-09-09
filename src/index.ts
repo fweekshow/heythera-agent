@@ -285,13 +285,15 @@ async function handleMessage(message: DecodedMessage, client: Client) {
 
 async function main() {
   try {
+    console.log("🔄 Initializing client...");
     const dbPath = getDbPath("basecamp-agent");
+    console.log("🔄 DB path:", dbPath);
     const client = await Client.create(signer, {
       dbEncryptionKey: encryptionKey,
       env: XMTP_ENV as "local" | "dev" | "production",
       dbPath,
     });
-    
+    console.log("🔄 Client initialized");
     await logAgentDetails(client);
 
     // Initialize broadcast client
@@ -300,7 +302,7 @@ async function main() {
     // Initialize reminder dispatcher
     const reminderDispatcher = createReminderDispatcher();
     reminderDispatcher.start(client);
-
+    console.log("🔄 Reminder dispatcher initialized");
     // Handle process termination
     const cleanup = () => {
       console.log("🛑 Shutting down agent...");

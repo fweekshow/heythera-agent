@@ -9,6 +9,7 @@ import {
 } from "./reminder.js";
 import { 
   getSpecificDaySchedule,
+  getFullSchedule,
   getDayActivities,
   getNightActivities,
   getActivityTime
@@ -21,10 +22,11 @@ export const DEFAULT_TOOLS = [
   showHelp,
   
   // Schedule tools - specific activity tools first
-  getNightActivities,
-  getDayActivities,
-  getActivityTime,
-  getSpecificDaySchedule,
+  // getNightActivities,
+  // getDayActivities,
+  // getActivityTime,
+  // getSpecificDaySchedule,
+  getFullSchedule,
   
   // Basecamp info
   fetchBasecampInfo,

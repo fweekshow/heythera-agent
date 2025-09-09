@@ -1,6 +1,7 @@
 import { tool } from "@langchain/core/tools";
 import { DateTime } from "luxon";
 import { EVENT_TZ } from "@/constant.js";
+import { z } from "zod";
 
 const SCHEDULE_DATA = {
   sunday: {
@@ -86,8 +87,21 @@ const SCHEDULE_DATA = {
 
 // Removed fetchBasecampScheduleDetails - using more specific tools instead
 
+export const getFullSchedule = tool(
+  () => { console.log("🔄 Getting full schedule...");
+    return JSON.stringify(SCHEDULE_DATA);
+  },
+  {
+    name: "GetFullSchedule",
+    description: "Use this tool to get the full schedule for Basecamp 2025. This tool contains the complete accurate schedule data for September 14-17, 2025 (Sunday-Wednesday).",
+    schema: z.object({
+      day: z.string().describe("The day to get schedule for: 'Sunday', 'Monday', 'Tuesday', or 'Wednesday'"),
+    }),
+  }
+);
+
 export const getSpecificDaySchedule = tool(
-  ({ day }: { day: string }) => {
+  ({ day }: { day: string }) => { console.log("🔄 Getting specific day schedule...", day);
     const dayKey = day.toLowerCase();
     const scheduleData = SCHEDULE_DATA[dayKey as keyof typeof SCHEDULE_DATA];
     
@@ -95,7 +109,7 @@ export const getSpecificDaySchedule = tool(
       return `Invalid day. Basecamp 2025 runs September 14-17, 2025. Available days are:
 - Sunday (September 14) - Arrival Day
 - Monday (September 15) - Day 1 (Full Programming)
-- Tuesday (September 16) - Day 2 & Closing
+- Tuesday (September 16) - Day 2
 - Wednesday (September 17) - Departure`;
     }
 
@@ -117,11 +131,15 @@ export const getSpecificDaySchedule = tool(
   {
     name: "GetSpecificDaySchedule",
     description: "CRITICAL: Use this tool for specific day schedule questions like 'What's the schedule for Monday?', 'Monday schedule', 'Tuesday schedule', 'show me Monday', etc. This tool includes the prompts for Day Activities and Night Activities. Parameter: day (string) - The day to get schedule for: 'Sunday', 'Monday', 'Tuesday', or 'Wednesday'",
+    schema: z.object({
+      day: z.string().describe("The day to get schedule for: 'Sunday', 'Monday', 'Tuesday', or 'Wednesday'"),
+    }),
   }
 );
 
 export const getDayActivities = tool(
   ({ day, activity }: { day: string; activity?: string }) => {
+    console.log("🔄 Getting day activities...", day, activity);
     const dayKey = day.toLowerCase();
     const scheduleData = SCHEDULE_DATA[dayKey as keyof typeof SCHEDULE_DATA] as any;
     
@@ -153,12 +171,17 @@ export const getDayActivities = tool(
   },
   {
     name: "GetDayActivities",
-    description: "CRITICAL: ALWAYS use this tool when someone mentions pickleball, yoga, whiskey tasting, tattoo parlour, lawn games, mushroom lab, trail running, co-work, or merch trading post. Use for ANY question about these activities including 'I heard we are playing pickleball on Monday', 'pickleball on Monday', 'when is yoga', etc. This tool contains the actual activity times that are NOT in the main schedule. Parameters: day (string) - 'Monday' or 'Tuesday' (extract from user message or default Monday), activity (optional string) - the specific activity they mentioned like 'pickleball'",
+    description: "use this tool when someone is asking for day activities",
+    schema: z.object({
+      day: z.string().describe("The day to get day activities"),
+      activity: z.string().describe("The activity they're asking about"),
+    }),
   }
 );
 
 export const getActivityTime = tool(
   ({ activity, day }: { activity: string; day?: string }) => {
+    console.log("🔄 Getting activity time...", activity, day);
     const searchDay = day?.toLowerCase() || 'monday';
     const scheduleData = SCHEDULE_DATA[searchDay as keyof typeof SCHEDULE_DATA] as any;
     
@@ -194,11 +217,16 @@ export const getActivityTime = tool(
   {
     name: "GetActivityTime",
     description: "Use when someone asks about timing for a specific activity like 'What time is pickleball?', 'When is yoga?', 'What time?'. Parameters: activity (string) - the activity they're asking about, day (optional string) - Monday or Tuesday",
+    schema: z.object({
+      activity: z.string().describe("The activity they're asking about"),
+      day: z.string().describe("The day to get activity time"),
+    }),
   }
 );
 
 export const getNightActivities = tool(
   ({ day }: { day: string }) => {
+    console.log("🔄 Getting night activities...", day);
     const dayKey = day.toLowerCase();
     const scheduleData = SCHEDULE_DATA[dayKey as keyof typeof SCHEDULE_DATA] as any;
     
@@ -219,6 +247,9 @@ export const getNightActivities = tool(
   },
   {
     name: "GetNightActivities", 
-    description: "CRITICAL: Use this tool when someone asks about night time activities with phrases like: 'what is happening at night', 'what's happening at night', 'what's going on at night', 'night activities', 'evening activities', 'nighttime events', 'what happens after dinner', OR when they mention specific night activities like 'karaoke', 'poker', 'gaming', 'fire pits', 'night hike'. This tool shows activities like gaming, karaoke, poker, fire pits, and night hikes. If no specific day mentioned, default to Monday. Parameter: day (string) - 'Monday' or 'Tuesday'",
+    description: "use this schedule tool when someone is asking for night activities",
+    schema: z.object({
+      day: z.string().describe("The day to get night activities"),
+    }),
   }
 );
