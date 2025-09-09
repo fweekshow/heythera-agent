@@ -7,7 +7,12 @@ import {
   cancelAllReminders,
   fetchCurrentDateTime 
 } from "./reminder.js";
-import { fetchBasecampScheduleDetails, getSpecificDaySchedule } from "./schedule.js";
+import { 
+  fetchBasecampScheduleDetails, 
+  getSpecificDaySchedule,
+  getDayActivities,
+  getNightActivities 
+} from "./schedule.js";
 import { sendWelcomeMessage, showHelp } from "./welcome.js";
 
 export const DEFAULT_TOOLS = [
@@ -18,6 +23,8 @@ export const DEFAULT_TOOLS = [
   // Schedule tools
   fetchBasecampScheduleDetails,
   getSpecificDaySchedule,
+  getDayActivities,
+  getNightActivities,
   
   // Basecamp info
   fetchBasecampInfo,

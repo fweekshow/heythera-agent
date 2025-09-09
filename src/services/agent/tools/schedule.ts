@@ -14,7 +14,6 @@ const SCHEDULE_DATA = {
   monday: {
     title: "Monday 9/15 — Day 1 (Full Programming)",
     events: [
-      // Morning
       "8:00–10:00 AM: Breakfast",
       "10:00 AM: State of Base w/ Jesse Pollak & Special Guests",
       "10:00–10:20 AM: Fireside Chat (Jesse Pollak & Special Guests)",
@@ -22,8 +21,12 @@ const SCHEDULE_DATA = {
       "11:30 AM: Workshops Round 1",
       "12:30 PM: Workshops Round 2",
       "1:30–3:00 PM: Lunch",
-      
-      // Day Activities
+      "7:00–9:00 PM: Communal Banquet",
+      "",
+      "☀️ Ask me about 'Day Activities' for yoga, pickleball, whiskey tasting & more!",
+      "🌙 Ask me about 'Night Activities' for gaming, karaoke, poker & fire pits!",
+    ],
+    dayActivities: [
       "7:00 AM: Yoga",
       "8:00 AM: Guided Trail Running", 
       "All Day: Tattoo Parlour",
@@ -34,11 +37,8 @@ const SCHEDULE_DATA = {
       "2:00–3:00 PM: Yoga",
       "3:00–5:00 PM: Pickleball Tournament",
       "5:00–6:30 PM: Whiskey Tasting",
-      
-      // Evening
-      "7:00–9:00 PM: Communal Banquet",
-      
-      // Night Activities
+    ],
+    nightActivities: [
       "9:00 PM: Night Hike",
       "9:00–11:00 PM: Gaming",
       "9:00–10:30 PM: Whiskey Tasting",
@@ -50,25 +50,25 @@ const SCHEDULE_DATA = {
   tuesday: {
     title: "Tuesday 9/16 — Day 2 & Closing",
     events: [
-      // Morning
       "8:00–10:00 AM: Breakfast",
       "10:00 AM: Jesse AMA & Award Ceremony",
       "11:30 AM: Workshops Round 3",
       "12:30 PM: Workshops Round 4", 
       "1:30–3:00 PM: Lunch",
-      
-      // Day Activities
+      "7:00 PM: Dinner - Food Truck Festival",
+      "8:00 PM: Live Band Performance",
+      "",
+      "☀️ Ask me about 'Day Activities' for ongoing activities!",
+      "🌙 Ask me about 'Night Activities' for final evening fun!",
+    ],
+    dayActivities: [
       "All Day: Tattoo Parlour",
       "All Day: Merch Trading Post",
       "11:00 AM–7:00 PM: Lawn Games",
       "11:00 AM–8:00 PM: Co-work & Co-create",
       "4:00–6:00 PM: Pickleball Tournament",
-      
-      // Evening
-      "7:00 PM: Dinner - Food Truck Festival",
-      "8:00 PM: Live Band Performance",
-      
-      // Night Activities
+    ],
+    nightActivities: [
       "9:00–11:00 PM: Gaming",
       "Varies: Karaoke",
       "Varies: Poker",
@@ -134,5 +134,53 @@ export const getSpecificDaySchedule = tool(
   {
     name: "GetSpecificDaySchedule",
     description: "Gets the schedule for a specific day (Sunday, Monday, Tuesday, or Wednesday) during Basecamp 2025. Use when someone asks about schedule for a particular day like 'What's the schedule on Monday?' or 'Tuesday schedule'. Parameter: day (string) - The day to get schedule for: 'Sunday', 'Monday', 'Tuesday', or 'Wednesday'",
+  }
+);
+
+export const getDayActivities = tool(
+  ({ day }: { day: string }) => {
+    const dayKey = day.toLowerCase();
+    const scheduleData = SCHEDULE_DATA[dayKey as keyof typeof SCHEDULE_DATA] as any;
+    
+    if (!scheduleData || !scheduleData.dayActivities) {
+      return `Day activities are only available for Monday and Tuesday. Available options:
+- Monday Day Activities
+- Tuesday Day Activities`;
+    }
+
+    let result = `☀️ ${scheduleData.title} - Day Activities\n\n`;
+    scheduleData.dayActivities.forEach((activity: string) => {
+      result += `- ${activity}\n`;
+    });
+    
+    return result;
+  },
+  {
+    name: "GetDayActivities",
+    description: "Gets the day activities for Monday or Tuesday when someone asks about 'day activities', 'daytime activities', or specific activities like yoga, pickleball, etc. Parameter: day (string) - 'Monday' or 'Tuesday'",
+  }
+);
+
+export const getNightActivities = tool(
+  ({ day }: { day: string }) => {
+    const dayKey = day.toLowerCase();
+    const scheduleData = SCHEDULE_DATA[dayKey as keyof typeof SCHEDULE_DATA] as any;
+    
+    if (!scheduleData || !scheduleData.nightActivities) {
+      return `Night activities are only available for Monday and Tuesday. Available options:
+- Monday Night Activities  
+- Tuesday Night Activities`;
+    }
+
+    let result = `🌙 ${scheduleData.title} - Night Activities\n\n`;
+    scheduleData.nightActivities.forEach((activity: string) => {
+      result += `- ${activity}\n`;
+    });
+    
+    return result;
+  },
+  {
+    name: "GetNightActivities", 
+    description: "Gets the night activities for Monday or Tuesday when someone asks about 'night activities', 'evening activities', or specific activities like karaoke, poker, gaming, etc. Parameter: day (string) - 'Monday' or 'Tuesday'",
   }
 );
