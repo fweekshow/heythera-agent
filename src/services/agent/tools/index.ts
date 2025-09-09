@@ -8,7 +8,6 @@ import {
   fetchCurrentDateTime 
 } from "./reminder.js";
 import { 
-  fetchBasecampScheduleDetails, 
   getSpecificDaySchedule,
   getDayActivities,
   getNightActivities,
@@ -26,7 +25,6 @@ export const DEFAULT_TOOLS = [
   getDayActivities,
   getActivityTime,
   getSpecificDaySchedule,
-  fetchBasecampScheduleDetails,
   
   // Basecamp info
   fetchBasecampInfo,

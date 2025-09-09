@@ -84,32 +84,7 @@ const SCHEDULE_DATA = {
   },
 };
 
-export const fetchBasecampScheduleDetails = tool(
-  () => {
-    const today = DateTime.now().setZone(EVENT_TZ);
-    let scheduleText = `Basecamp 2025 Schedule\n`;
-    scheduleText += `Event Duration: September 14-17, 2025\n\n`;
-    scheduleText += `Today's Date: ${today.toFormat("LLLL d, yyyy")}\n`;
-    scheduleText += `Today's Day: ${today.toFormat("cccc")}\n`;
-    scheduleText += `Current Time: ${today.toFormat("hh:mm a ZZZZ")}\n\n`;
-
-    // Add each day's schedule in a readable format
-    Object.entries(SCHEDULE_DATA).forEach(([day, data]) => {
-      scheduleText += `${data.title}\n`;
-      data.events.forEach((event) => {
-        scheduleText += `- ${event}\n`;
-      });
-      scheduleText += `\n`;
-    });
-
-    return scheduleText;
-  },
-  {
-    name: "FetchBasecampScheduleDetails",
-    description:
-      "Use this tool for general schedule questions - full schedule or specific days like 'Monday', 'Tuesday', 'Sunday', 'Wednesday'. DO NOT use for specific activity questions like 'pickleball on Monday' - use GetDayActivities or GetNightActivities tools instead. Contains complete accurate schedule for September 14-17, 2025 (Sunday-Wednesday).",
-  },
-);
+// Removed fetchBasecampScheduleDetails - using more specific tools instead
 
 export const getSpecificDaySchedule = tool(
   ({ day }: { day: string }) => {
@@ -141,7 +116,7 @@ export const getSpecificDaySchedule = tool(
   },
   {
     name: "GetSpecificDaySchedule",
-    description: "Gets the schedule for a specific day (Sunday, Monday, Tuesday, or Wednesday) during Basecamp 2025. Use when someone asks about schedule for a particular day like 'What's the schedule on Monday?' or 'Tuesday schedule'. Parameter: day (string) - The day to get schedule for: 'Sunday', 'Monday', 'Tuesday', or 'Wednesday'",
+    description: "CRITICAL: Use this tool for specific day schedule questions like 'What's the schedule for Monday?', 'Monday schedule', 'Tuesday schedule', 'show me Monday', etc. This tool includes the prompts for Day Activities and Night Activities. Parameter: day (string) - The day to get schedule for: 'Sunday', 'Monday', 'Tuesday', or 'Wednesday'",
   }
 );
 
