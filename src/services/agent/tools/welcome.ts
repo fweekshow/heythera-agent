@@ -4,9 +4,7 @@ export const sendWelcomeMessage = tool(
   () => {
     return `Hi! I'm the Basecamp 2025 Concierge - your helpful assistant for Basecamp. I can help you with the Schedule, General Info or Setting Reminders.
 
-Ask me questions like... "What's the schedule on Monday?" "Set me a reminder 15 minutes before Dinner"
-
-Official site: https://www.basecamp2025.xyz `;
+Ask me questions like... "What's the schedule on Monday?" "Set me a reminder 15 minutes before Dinner"`;
   },
   {
     name: "SendWelcomeMessage",
