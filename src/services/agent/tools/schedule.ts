@@ -107,7 +107,7 @@ export const fetchBasecampScheduleDetails = tool(
   {
     name: "FetchBasecampScheduleDetails",
     description:
-      "ALWAYS use this tool for ANY schedule question - whether asking for the full schedule, specific days like 'Monday', 'Tuesday', 'Sunday', 'Wednesday', or specific events. Contains complete accurate schedule for September 14-17, 2025 (Sunday-Wednesday). Use this tool first, then extract the relevant information from the response.",
+      "Use this tool for general schedule questions - full schedule or specific days like 'Monday', 'Tuesday', 'Sunday', 'Wednesday'. For specific activity questions (day activities, night activities), use the specialized tools instead. Contains complete accurate schedule for September 14-17, 2025 (Sunday-Wednesday).",
   },
 );
 
@@ -157,7 +157,7 @@ export const getDayActivities = tool(
   },
   {
     name: "GetDayActivities",
-    description: "Gets the day activities for Monday or Tuesday when someone asks about 'day activities', 'daytime activities', or specific activities like yoga, pickleball, etc. Parameter: day (string) - 'Monday' or 'Tuesday'",
+    description: "Gets the day activities for Monday or Tuesday when someone asks about daytime activities. Use for questions like: 'day activities', 'daytime activities', 'what's happening during the day', or mentions of yoga, pickleball, whiskey tasting, tattoo parlour, lawn games. If no specific day mentioned, default to Monday. Parameter: day (string) - 'Monday' or 'Tuesday'",
   }
 );
 
@@ -181,6 +181,6 @@ export const getNightActivities = tool(
   },
   {
     name: "GetNightActivities", 
-    description: "Gets the night activities for Monday or Tuesday when someone asks about 'night activities', 'evening activities', or specific activities like karaoke, poker, gaming, etc. Parameter: day (string) - 'Monday' or 'Tuesday'",
+    description: "Gets the night activities for Monday or Tuesday when someone asks about night time activities. Use for questions like: 'night activities', 'evening activities', 'what's happening at night', 'what's going on at night', 'nighttime events', or mentions of karaoke, poker, gaming, fire pits. If no specific day mentioned, default to Monday. Parameter: day (string) - 'Monday' or 'Tuesday'",
   }
 );
