@@ -124,10 +124,18 @@ export const getSpecificDaySchedule = tool(
 - Wednesday (September 17) - Departure`;
     }
 
-    let result = `${scheduleData.title}\n\n`;
+    let result = `Here's the schedule for ${scheduleData.title}:\n\n`;
     scheduleData.events.forEach((event) => {
-      result += `- ${event}\n`;
+      if (event.trim()) { // Skip empty lines
+        result += `- ${event}\n`;
+      }
     });
+    
+    // Add natural prompts for day/night activities on Monday and Tuesday
+    const scheduleDataWithActivities = scheduleData as any;
+    if (scheduleDataWithActivities.dayActivities && scheduleDataWithActivities.nightActivities) {
+      result += `\nWant to know more? Ask me about "Day Activities" or "Night Activities" for ${dayKey === 'monday' ? 'Monday' : 'Tuesday'}!`;
+    }
     
     return result;
   },
@@ -138,7 +146,7 @@ export const getSpecificDaySchedule = tool(
 );
 
 export const getDayActivities = tool(
-  ({ day }: { day: string }) => {
+  ({ day, activity }: { day: string; activity?: string }) => {
     const dayKey = day.toLowerCase();
     const scheduleData = SCHEDULE_DATA[dayKey as keyof typeof SCHEDULE_DATA] as any;
     
@@ -148,16 +156,29 @@ export const getDayActivities = tool(
 - Tuesday Day Activities`;
     }
 
-    let result = `☀️ ${scheduleData.title} - Day Activities\n\n`;
-    scheduleData.dayActivities.forEach((activity: string) => {
-      result += `- ${activity}\n`;
+    let result = `☀️ Here are the Day Activities for ${scheduleData.title}:\n\n`;
+    scheduleData.dayActivities.forEach((activityItem: string) => {
+      result += `- ${activityItem}\n`;
     });
+    
+    // If they asked about a specific activity, highlight it
+    if (activity) {
+      const lowerActivity = activity.toLowerCase();
+      const matchingActivity = scheduleData.dayActivities.find((item: string) => 
+        item.toLowerCase().includes(lowerActivity)
+      );
+      if (matchingActivity) {
+        result += `\n🎯 You asked about ${activity}! It's scheduled: ${matchingActivity}`;
+      }
+    }
+    
+    result += `\nLots to choose from! Let me know if you want details about any specific activity.`;
     
     return result;
   },
   {
     name: "GetDayActivities",
-    description: "Gets the day activities for Monday or Tuesday when someone asks about daytime activities. Use for questions like: 'day activities', 'daytime activities', 'what's happening during the day', or mentions of yoga, pickleball, whiskey tasting, tattoo parlour, lawn games. If no specific day mentioned, default to Monday. Parameter: day (string) - 'Monday' or 'Tuesday'",
+    description: "Gets the day activities for Monday or Tuesday. Use when someone asks about: 'day activities', 'daytime activities', 'what's happening during the day', OR when they mention specific day activities like 'yoga', 'pickleball', 'whiskey tasting', 'tattoo parlour', 'lawn games', 'mushroom lab', 'trail running', 'co-work', 'merch trading post'. ALWAYS use this tool when someone asks about or mentions pickleball specifically. Parameters: day (string) - 'Monday' or 'Tuesday' (default Monday if not specified), activity (optional string) - the specific activity they mentioned like 'pickleball'",
   }
 );
 
@@ -172,15 +193,17 @@ export const getNightActivities = tool(
 - Tuesday Night Activities`;
     }
 
-    let result = `🌙 ${scheduleData.title} - Night Activities\n\n`;
+    let result = `🌙 Here are the Night Activities for ${scheduleData.title}:\n\n`;
     scheduleData.nightActivities.forEach((activity: string) => {
       result += `- ${activity}\n`;
     });
+    
+    result += `\nPerfect way to wind down the day! Ask me about any of these if you want more info.`;
     
     return result;
   },
   {
     name: "GetNightActivities", 
-    description: "Gets the night activities for Monday or Tuesday when someone asks about night time activities. Use for questions like: 'night activities', 'evening activities', 'what's happening at night', 'what's going on at night', 'nighttime events', or mentions of karaoke, poker, gaming, fire pits. If no specific day mentioned, default to Monday. Parameter: day (string) - 'Monday' or 'Tuesday'",
+    description: "Gets the night activities for Monday or Tuesday. Use when someone asks about: 'night activities', 'evening activities', 'what's happening at night', 'what's going on at night', 'nighttime events', OR when they mention specific night activities like 'karaoke', 'poker', 'gaming', 'fire pits', 'night hike'. ALWAYS use this tool when someone asks about or mentions karaoke, poker, or gaming specifically. If no specific day mentioned, default to Monday. Parameter: day (string) - 'Monday' or 'Tuesday'",
   }
 );
