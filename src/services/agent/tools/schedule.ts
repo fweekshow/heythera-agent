@@ -178,7 +178,7 @@ export const getDayActivities = tool(
   },
   {
     name: "GetDayActivities",
-    description: "CRITICAL: Use this tool whenever someone mentions ANY specific activity + day combination like 'pickleball on Monday', 'yoga on Tuesday', 'whiskey tasting', etc. Also use for general day activity questions. This tool provides specific times and details for activities. Activities include: yoga, pickleball, whiskey tasting, tattoo parlour, lawn games, mushroom lab, trail running, co-work, merch trading post. Parameters: day (string) - 'Monday' or 'Tuesday' (extract from user message or default Monday), activity (optional string) - the specific activity they mentioned",
+    description: "CRITICAL: ALWAYS use this tool when someone mentions pickleball, yoga, whiskey tasting, tattoo parlour, lawn games, mushroom lab, trail running, co-work, or merch trading post. Use for ANY question about these activities including 'I heard we are playing pickleball on Monday', 'pickleball on Monday', 'when is yoga', etc. This tool contains the actual activity times that are NOT in the main schedule. Parameters: day (string) - 'Monday' or 'Tuesday' (extract from user message or default Monday), activity (optional string) - the specific activity they mentioned like 'pickleball'",
   }
 );
 
@@ -244,6 +244,6 @@ export const getNightActivities = tool(
   },
   {
     name: "GetNightActivities", 
-    description: "Gets the night activities for Monday or Tuesday. Use when someone asks about: 'night activities', 'evening activities', 'what's happening at night', 'what's going on at night', 'nighttime events', OR when they mention specific night activities like 'karaoke', 'poker', 'gaming', 'fire pits', 'night hike'. ALWAYS use this tool when someone asks about or mentions karaoke, poker, or gaming specifically. If no specific day mentioned, default to Monday. Parameter: day (string) - 'Monday' or 'Tuesday'",
+    description: "CRITICAL: Use this tool when someone asks about night time activities with phrases like: 'what is happening at night', 'what's happening at night', 'what's going on at night', 'night activities', 'evening activities', 'nighttime events', 'what happens after dinner', OR when they mention specific night activities like 'karaoke', 'poker', 'gaming', 'fire pits', 'night hike'. This tool shows activities like gaming, karaoke, poker, fire pits, and night hikes. If no specific day mentioned, default to Monday. Parameter: day (string) - 'Monday' or 'Tuesday'",
   }
 );

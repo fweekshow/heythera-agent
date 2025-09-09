@@ -21,12 +21,12 @@ export const DEFAULT_TOOLS = [
   sendWelcomeMessage,
   showHelp,
   
-  // Schedule tools
-  fetchBasecampScheduleDetails,
-  getSpecificDaySchedule,
-  getDayActivities,
+  // Schedule tools - specific activity tools first
   getNightActivities,
+  getDayActivities,
   getActivityTime,
+  getSpecificDaySchedule,
+  fetchBasecampScheduleDetails,
   
   // Basecamp info
   fetchBasecampInfo,
