@@ -252,11 +252,23 @@ async function handleMessage(message: DecodedMessage, client: Client) {
       const conversationContext = getConversationContext(senderInboxId);
       const messageWithContext = conversationContext + cleanContent;
       
-      // Check if this is a greeting/welcome request first
-      const isWelcomeRequest = cleanContent.toLowerCase().match(/^(hi|hello|hey|what can you do|how can you help)$/);
+      // Use AI to detect if this is a greeting/engagement message
+      const greetingCheckPrompt = `Is this message a greeting, casual hello, or someone starting a conversation? Examples: "hi", "hello", "hey", "yoooo", "what's up", "sup", "howdy", "good morning", "gm", "yo", "hey there", etc. 
 
-      if (isWelcomeRequest) {
-        console.log("👋 Direct welcome request detected, sending Quick Actions...");
+Message: "${cleanContent}"
+
+Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specific question or request.`;
+
+      const isGreeting = await agent.run(
+        greetingCheckPrompt,
+        senderInboxId,
+        conversationId,
+        isGroup,
+        senderAddress,
+      );
+
+      if (isGreeting && isGreeting.toLowerCase().includes("yes")) {
+        console.log("👋 AI detected greeting/engagement, sending Quick Actions...");
         try {
           // Create Quick Actions for welcome message using proper ActionsContent type
           const quickActionsContent: ActionsContent = {
