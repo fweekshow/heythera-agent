@@ -2,22 +2,22 @@ import type { GroupUpdated } from "@xmtp/content-type-group-updated";
 import { TransactionReference } from "@xmtp/content-type-transaction-reference";
 import { WalletSendCallsParams } from "@xmtp/content-type-wallet-send-calls";
 import type { Client } from "@xmtp/node-sdk";
+import type { ActionsContent } from "./xmtp-inline-actions/types/ActionsContent.js";
+import type { IntentContent } from "./xmtp-inline-actions/types/IntentContent.js";
 import { getDueReminders, markReminderSent } from "./store.js";
 
 export interface ReminderDispatcher {
   start(
-    client: Client<
-      string | GroupUpdated | TransactionReference | WalletSendCallsParams
-    >,
+    client: Client<any>,
   ): void;
   stop(): void;
 }
 
 class ReminderDispatcherImpl implements ReminderDispatcher {
   private intervalId: NodeJS.Timeout | null = null;
-  private client: Client | null = null;
+  private client: Client<any> | null = null;
 
-  start(client: Client): void {
+  start(client: Client<any>): void {
     this.client = client;
     this.intervalId = setInterval(async () => {
       await this.processDueReminders();

@@ -284,8 +284,7 @@ async function handleMessage(message: DecodedMessage, client: Client) {
           console.log("🎯 Sending Quick Actions:", JSON.stringify(quickActionsContent, null, 2));
           
           // Send Quick Actions with proper content type using the registered codec
-          //@ts-ignore
-          await conversation.send(quickActionsContent, ContentTypeActions);
+          await (conversation as any).send(quickActionsContent, ContentTypeActions);
           console.log(`✅ Sent Quick Actions welcome message`);
           
           // Store this exchange in conversation history
@@ -375,15 +374,12 @@ async function main() {
     
     // Register codecs for Quick Actions
     console.log("🔄 Client initialized with Quick Actions codecs");
-    //@ts-ignore
     await logAgentDetails(client);
     // Initialize broadcast client
-    //@ts-ignore
     setBroadcastClient(client);
 
     // Initialize reminder dispatcher
     const reminderDispatcher = createReminderDispatcher();
-    //@ts-ignore
     reminderDispatcher.start(client);
     console.log("🔄 Reminder dispatcher initialized");
     // Handle process termination
@@ -478,8 +474,7 @@ async function main() {
       continue;
     }
       
-      //@ts-ignore
-      await handleMessage(message, client);
+      await handleMessage(message, client as any);
     }
 
   } catch (error) {

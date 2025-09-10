@@ -1,11 +1,13 @@
 import type { Client } from "@xmtp/node-sdk";
+import type { ActionsContent } from "@/xmtp-inline-actions/types/ActionsContent.js";
+import type { IntentContent } from "@/xmtp-inline-actions/types/IntentContent.js";
 import { getName } from '@coinbase/onchainkit/identity';
 import { base } from 'viem/chains';
 
 // Store the client reference for broadcast functionality
-let broadcastClient: Client | null = null;
+let broadcastClient: Client<any> | null = null;
 
-export function setBroadcastClient(client: Client) {
+export function setBroadcastClient(client: Client<any>) {
   broadcastClient = client;
 }
 
