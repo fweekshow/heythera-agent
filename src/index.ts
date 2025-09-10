@@ -19,7 +19,7 @@ import {
   XMTP_ENV,
 } from "./config.js";
 import { ActionsCodec, type ActionsContent, ContentTypeActions } from "./xmtp-inline-actions/types/ActionsContent.js";
-import { IntentCodec } from "./xmtp-inline-actions/types/IntentContent.js";
+import { IntentCodec, ContentTypeIntent } from "./xmtp-inline-actions/types/IntentContent.js";
 
 if (!WALLET_KEY) {
   throw new Error("WALLET_KEY is required");
@@ -282,10 +282,12 @@ async function handleMessage(message: DecodedMessage, client: Client) {
           };
 
           console.log("🎯 Sending Quick Actions:", JSON.stringify(quickActionsContent, null, 2));
+          console.log("🎯 Content type being used:", ContentTypeActions.toString());
           
           // Send Quick Actions with proper content type using the registered codec
           await (conversation as any).send(quickActionsContent, ContentTypeActions);
           console.log(`✅ Sent Quick Actions welcome message`);
+          console.log(`✅ Content type used:`, ContentTypeActions.toString());
           
           // Store this exchange in conversation history
           addToConversationHistory(senderInboxId, cleanContent, "Welcome message with Quick Actions sent");
@@ -297,6 +299,16 @@ async function handleMessage(message: DecodedMessage, client: Client) {
           addToConversationHistory(senderInboxId, cleanContent, "Welcome message sent (fallback)");
           return;
         }
+      }
+
+      // Check if this is a casual acknowledgment
+      const isCasualMessage = cleanContent.toLowerCase().match(/^(cool|nice|thanks|thank you|ok|okay|sure|yeah|yep|got it|sounds good)$/);
+
+      if (isCasualMessage) {
+        console.log("👍 Casual message detected, sending emoji response");
+        await conversation.send("👍 You're welcome! Feel free to ask me about anything else!");
+        addToConversationHistory(senderInboxId, cleanContent, "Casual acknowledgment response sent");
+        return; // Skip AI agent
       }
 
       // Generate AI response for non-welcome requests
@@ -441,12 +453,24 @@ async function main() {
       continue;
     }
 
+    // Debug: Log all message types
+    console.log(`📨 Message received - Type: ${message?.contentType?.typeId}, Content: ${typeof message?.content}`);
+    console.log(`📨 Expected intent type: ${ContentTypeIntent.toString()}`);
+    
+    // Debug intent messages specifically
+    if (message?.contentType?.typeId === "intent") {
+      console.log(`🎯 Intent message detected! Content:`, JSON.stringify(message.content, null, 2));
+    }
+
     // Handle Intent messages (Quick Action responses)
-    if (message?.contentType?.typeId === "coinbase.com/intent:1.0") {
+    if (message?.contentType?.typeId === ContentTypeIntent.toString() || 
+        message?.contentType?.typeId === "coinbase.com/intent:1.0" ||
+        message?.contentType?.typeId === "intent") {
       const intentContent = message.content as any;
       const actionId = intentContent.actionId;
       
       console.log(`🎯 Received Quick Action intent: ${actionId}`);
+      console.log(`🎯 Full intent content:`, JSON.stringify(intentContent, null, 2));
       
       // Get conversation to respond
       const conversation = await client.conversations.getConversationById(message.conversationId);
@@ -455,13 +479,42 @@ async function main() {
       // Handle different action IDs
       switch (actionId) {
         case "schedule":
-          await conversation.send("Here's the full Basecamp 2025 schedule! What specific day would you like to know about?");
+          await conversation.send(`📅 Basecamp 2025 Schedule Helper
+
+Ask me any questions about the schedule! Here are some examples:
+
+By Day:
+• "What is the schedule on Monday?"
+• "What's happening on Sunday?"
+• "Show me Tuesday's events"
+
+By Event:
+• "What time does Jesse start speaking?"
+• "When is the Pickleball Tournament on Monday?"
+• "What time is the Welcome Reception?"
+
+By Activity Type:
+• "What are the night activities?"
+• "Show me the morning sessions"
+• "What workshops are available?"
+
+Just ask naturally - I understand conversational requests!`);
           break;
         case "set_reminder":
           await conversation.send("I can help you set reminders! Just tell me what you'd like to be reminded about and when. For example: 'Remind me about the Welcome Reception 30 minutes before it starts'");
           break;
         case "concierge_support":
-          await conversation.send("I'm here to help with any questions about Basecamp 2025! Ask me about the venue, logistics, activities, or anything else you need to know.");
+          await conversation.send(`Concierge Support
+
+I'm here to help as your Concierge during Basecamp 2025! 
+
+For non-urgent matters:
+Send a message to support@basecamp.xyz
+
+For urgent concerns:
+We can forward your concern directly to the event organizers
+
+What can I help you with?`);
           break;
         default:
           await conversation.send("Thanks for your selection! How can I help you with Basecamp 2025?");
