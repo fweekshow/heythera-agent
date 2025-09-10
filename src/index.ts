@@ -18,6 +18,8 @@ import {
   WALLET_KEY,
   XMTP_ENV,
 } from "./config.js";
+import { ActionsCodec, type ActionsContent, ContentTypeActions } from "./xmtp-inline-actions/types/ActionsContent.js";
+import { IntentCodec } from "./xmtp-inline-actions/types/IntentContent.js";
 
 if (!WALLET_KEY) {
   throw new Error("WALLET_KEY is required");
@@ -250,7 +252,55 @@ async function handleMessage(message: DecodedMessage, client: Client) {
       const conversationContext = getConversationContext(senderInboxId);
       const messageWithContext = conversationContext + cleanContent;
       
-      // Generate AI response
+      // Check if this is a greeting/welcome request first
+      const isWelcomeRequest = cleanContent.toLowerCase().match(/^(hi|hello|hey|what can you do|how can you help)$/);
+
+      if (isWelcomeRequest) {
+        console.log("👋 Direct welcome request detected, sending Quick Actions...");
+        try {
+          // Create Quick Actions for welcome message using proper ActionsContent type
+          const quickActionsContent: ActionsContent = {
+            id: "basecamp_welcome_actions",
+            description: "Hi! I'm the Basecamp Agent. Here are things I can help you with:",
+            actions: [
+              {
+                id: "schedule",
+                label: "📅 Schedule",
+                style: "primary"
+              },
+              {
+                id: "set_reminder", 
+                label: "⏰ Set Reminder",
+                style: "secondary"
+              },
+              {
+                id: "concierge_support",
+                label: "🎫 Concierge Support", 
+                style: "secondary"
+              }
+            ]
+          };
+
+          console.log("🎯 Sending Quick Actions:", JSON.stringify(quickActionsContent, null, 2));
+          
+          // Send Quick Actions with proper content type using the registered codec
+          //@ts-ignore
+          await conversation.send(quickActionsContent, ContentTypeActions);
+          console.log(`✅ Sent Quick Actions welcome message`);
+          
+          // Store this exchange in conversation history
+          addToConversationHistory(senderInboxId, cleanContent, "Welcome message with Quick Actions sent");
+          return; // Exit early, don't process with AI
+        } catch (quickActionsError) {
+          console.error("❌ Error sending Quick Actions:", quickActionsError);
+          // Fallback to regular text
+          await conversation.send("Hi! I'm the Basecamp Agent. I can help you with the Schedule, Set Reminders, or Concierge Support. What would you like to know?");
+          addToConversationHistory(senderInboxId, cleanContent, "Welcome message sent (fallback)");
+          return;
+        }
+      }
+
+      // Generate AI response for non-welcome requests
       const response = await agent.run(
         messageWithContext,
         senderInboxId,
@@ -260,11 +310,39 @@ async function handleMessage(message: DecodedMessage, client: Client) {
       );
 
       if (response) {
-        await conversation.send(response);
-        console.log(`✅ Sent response: "${response}"`);
+        console.log(`🔍 AI Response check - contains Quick Actions?: ${response.includes('"contentType":"coinbase.com/actions:1.0"')}`);
+        console.log(`🔍 Full AI Response: "${response}"`);
         
-        // Store this exchange in conversation history
-        addToConversationHistory(senderInboxId, cleanContent, response);
+        // Check if this is a Quick Actions response
+        if (response.includes('"contentType":"coinbase.com/actions:1.0"')) {
+          try {
+            console.log("🎯 Detected Quick Actions response, parsing...");
+            const quickActionsData = JSON.parse(response);
+            const actionsContent = quickActionsData.content;
+            
+            console.log("🎯 Sending Quick Actions:", JSON.stringify(actionsContent, null, 2));
+            
+            // Send the Quick Actions using Base App's content type
+            await conversation.send(actionsContent);
+            console.log(`✅ Sent Quick Actions welcome message`);
+            
+            // Store this exchange in conversation history
+            addToConversationHistory(senderInboxId, cleanContent, "Welcome message with Quick Actions sent");
+          } catch (quickActionsError) {
+            console.error("❌ Error sending Quick Actions:", quickActionsError);
+            console.log("🔄 Falling back to regular text response");
+            // Fallback to regular text
+            await conversation.send("Hi! I'm the Basecamp Agent. I can help you with the Schedule, Set Reminders, or Concierge Support. What would you like to know?");
+          }
+        } else {
+          // Regular text response
+          console.log("💬 Sending regular text response");
+          await conversation.send(response);
+          console.log(`✅ Sent response: "${response}"`);
+          
+          // Store this exchange in conversation history
+          addToConversationHistory(senderInboxId, cleanContent, response);
+        }
       }
     } catch (error) {
       console.error("❌ Error generating or sending response:", error);
@@ -292,15 +370,20 @@ async function main() {
       dbEncryptionKey: encryptionKey,
       env: XMTP_ENV as "local" | "dev" | "production",
       dbPath,
+      codecs: [new ActionsCodec(), new IntentCodec()],
     });
-    console.log("🔄 Client initialized");
+    
+    // Register codecs for Quick Actions
+    console.log("🔄 Client initialized with Quick Actions codecs");
+    //@ts-ignore
     await logAgentDetails(client);
-
     // Initialize broadcast client
+    //@ts-ignore
     setBroadcastClient(client);
 
     // Initialize reminder dispatcher
     const reminderDispatcher = createReminderDispatcher();
+    //@ts-ignore
     reminderDispatcher.start(client);
     console.log("🔄 Reminder dispatcher initialized");
     // Handle process termination
@@ -357,14 +440,45 @@ async function main() {
     const stream = await client.conversations.streamAllMessages();
     
     for await (const message of stream) {
-      // Skip messages from ourselves or non-text messages
-      if (
-        message?.senderInboxId.toLowerCase() === client.inboxId.toLowerCase() ||
-        message?.contentType?.typeId !== "text"
-      ) {
-        continue;
-      }
+    // Skip messages from ourselves
+    if (message?.senderInboxId.toLowerCase() === client.inboxId.toLowerCase()) {
+      continue;
+    }
+
+    // Handle Intent messages (Quick Action responses)
+    if (message?.contentType?.typeId === "coinbase.com/intent:1.0") {
+      const intentContent = message.content as any;
+      const actionId = intentContent.actionId;
       
+      console.log(`🎯 Received Quick Action intent: ${actionId}`);
+      
+      // Get conversation to respond
+      const conversation = await client.conversations.getConversationById(message.conversationId);
+      if (!conversation) continue;
+      
+      // Handle different action IDs
+      switch (actionId) {
+        case "schedule":
+          await conversation.send("Here's the full Basecamp 2025 schedule! What specific day would you like to know about?");
+          break;
+        case "set_reminder":
+          await conversation.send("I can help you set reminders! Just tell me what you'd like to be reminded about and when. For example: 'Remind me about the Welcome Reception 30 minutes before it starts'");
+          break;
+        case "concierge_support":
+          await conversation.send("I'm here to help with any questions about Basecamp 2025! Ask me about the venue, logistics, activities, or anything else you need to know.");
+          break;
+        default:
+          await conversation.send("Thanks for your selection! How can I help you with Basecamp 2025?");
+      }
+      continue;
+    }
+    
+    // Skip non-text messages
+    if (message?.contentType?.typeId !== "text") {
+      continue;
+    }
+      
+      //@ts-ignore
       await handleMessage(message, client);
     }
 

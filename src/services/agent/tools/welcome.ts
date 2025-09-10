@@ -2,14 +2,35 @@ import { tool } from "@langchain/core/tools";
 
 export const sendWelcomeMessage = tool(
   () => {
-    return `Hi! I'm the Basecamp 2025 Concierge - your helpful assistant for Basecamp. I can help you with the Schedule, General Info or Setting Reminders.
-
-Ask me questions like... "What's the schedule on Monday?" "Set me a reminder 15 minutes before Dinner"`;
+    // Return Quick Actions for Base App (coinbase.com/actions:1.0)
+    return JSON.stringify({
+      contentType: "coinbase.com/actions:1.0",
+      content: {
+        id: "basecamp_welcome_actions",
+        description: "Hi! I'm the Basecamp Agent. Here are things I can help you with:",
+        actions: [
+          {
+            id: "schedule",
+            label: "📅 Schedule",
+            style: "primary"
+          },
+          {
+            id: "set_reminder", 
+            label: "⏰ Set Reminder",
+            style: "secondary"
+          },
+          {
+            id: "concierge_support",
+            label: "🎫 Concierge Support", 
+            style: "secondary"
+          }
+        ]
+      }
+    });
   },
   {
     name: "SendWelcomeMessage",
-    description:
-      "Sends a welcome message explaining the agent's capabilities for Basecamp 2025",
+    description: "Sends a welcome message with Quick Actions for new users to choose from (Schedule, Set Reminder, Concierge Support)",
   },
 );
 

@@ -6,6 +6,7 @@ import { DEFAULT_REPLY } from "@/constant.js";
 import { SYSTEM_PROMPT } from "./prompt.js";
 import { DEFAULT_TOOLS } from "./tools/index.js";
 
+
 export class AIAgent {
   private model: ChatOpenAI;
   constructor() {
