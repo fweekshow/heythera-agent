@@ -16,7 +16,8 @@ async function isAuthorizedBroadcaster(senderInboxId: string): Promise<boolean> 
     "0xteo.base.eth",
     "claudia.base.eth",
     "jesse.base.eth",
-    "medusaxenon.base.eth"
+    "medusaxenon.base.eth",
+    "kaelis.base.eth"
     // Add more basenames here for additional authorized users
     // "alice.base.eth",
     // "bob.base.eth",
