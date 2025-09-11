@@ -3,6 +3,7 @@ import { createReminderDispatcher } from "./dispatcher.js";
 import { isMentioned, removeMention } from "./mentions.js";
 import { AIAgent } from "./services/agent/index.js";
 import { setBroadcastClient } from "./services/agent/tools/broadcast.js";
+import { setUrgentMessageClient } from "./services/agent/tools/urgentMessage.js";
 import {
   createSigner,
   getDbPath,
@@ -323,6 +324,29 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
         return; // Skip AI agent
       }
 
+      // Check if this is an urgent message (after user clicked "urgent_yes")
+      const urgentContext = getConversationContext(senderInboxId);
+      const isUrgentMessage = urgentContext.includes("urgent_yes") || 
+                              cleanContent.toLowerCase().includes("urgent") ||
+                              cleanContent.toLowerCase().includes("emergency") ||
+                              cleanContent.toLowerCase().includes("help") ||
+                              cleanContent.length > 10; // If it's a substantial message after urgent_yes
+
+      if (isUrgentMessage) {
+        console.log("🚨 Urgent message detected, forwarding to staff...");
+        try {
+          const { forwardUrgentMessage } = await import("./services/agent/tools/urgentMessage.js");
+          const result = await forwardUrgentMessage(cleanContent, senderInboxId, conversationId);
+          await conversation.send(result);
+          addToConversationHistory(senderInboxId, cleanContent, "Urgent message forwarded to staff");
+          return; // Skip AI agent
+        } catch (error) {
+          console.error("❌ Error forwarding urgent message:", error);
+          await conversation.send("❌ Failed to forward your urgent message. Please contact support@basecamp.xyz directly.");
+          return;
+        }
+      }
+
       // Generate AI response for non-welcome requests
       const response = await agent.run(
         messageWithContext,
@@ -401,6 +425,9 @@ async function main() {
     await logAgentDetails(client);
     // Initialize broadcast client
     setBroadcastClient(client);
+    
+    // Initialize urgent message client
+    setUrgentMessageClient(client);
 
     // Initialize reminder dispatcher
     const reminderDispatcher = createReminderDispatcher();
@@ -516,17 +543,46 @@ Just ask naturally - I understand conversational requests!`);
           await conversation.send("I can help you set reminders! Just tell me what you'd like to be reminded about and when. For example: 'Remind me about the Welcome Reception 30 minutes before it starts'");
           break;
         case "concierge_support":
-          await conversation.send(`Concierge Support
+          const conciergeActionsContent: ActionsContent = {
+            id: "concierge_support_actions",
+            description: `Concierge Support
 
 I'm here to help as your Concierge during Basecamp 2025! 
 
-For non-urgent matters:
-Send a message to support@basecamp.xyz
+Is this an urgent matter that needs immediate attention?`,
+            actions: [
+              {
+                id: "urgent_yes",
+                label: "🚨 Yes, Urgent",
+                style: "danger"
+              },
+              {
+                id: "urgent_no", 
+                label: "📧 No, Not Urgent",
+                style: "secondary"
+              }
+            ]
+          };
+          await (conversation as any).send(conciergeActionsContent, ContentTypeActions);
+          break;
+        case "urgent_yes":
+          // Store that user is in urgent mode
+          addToConversationHistory(message.senderInboxId, "urgent_yes", "User selected urgent support");
+          await conversation.send(`🚨 Urgent Support
 
-For urgent concerns:
-We can forward your concern directly to the event organizers
+I understand this is urgent! Please describe your concern and I'll forward it directly to the event organizers for immediate attention.
 
-What can I help you with?`);
+What's the issue you're experiencing?`);
+          break;
+        case "urgent_no":
+          await conversation.send(`📧 Non-Urgent Support
+
+For non-urgent matters, please send a message to:
+support@basecamp.xyz
+
+This is the best way to reach our support team for general questions, requests, or non-urgent concerns.
+
+Is there anything else I can help you with regarding Basecamp 2025?`);
           break;
         default:
           await conversation.send("Thanks for your selection! How can I help you with Basecamp 2025?");

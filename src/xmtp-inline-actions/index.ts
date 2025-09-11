@@ -3,7 +3,7 @@ import {
   getEncryptionKeyFromHex,
   logAgentDetails,
   validateEnvironment,
-} from "@helpers/client";
+} from "../services/helpers/client.js";
 import { TransactionReferenceCodec } from "@xmtp/content-type-transaction-reference";
 import { WalletSendCallsCodec } from "@xmtp/content-type-wallet-send-calls";
 import { Client, type XmtpEnv } from "@xmtp/node-sdk";

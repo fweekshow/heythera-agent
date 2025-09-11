@@ -232,7 +232,6 @@ export class TokenHandler {
         version: "1.0",
         from: request.from as `0x${string}`,
         chainId: this.networkConfig.chainId,
-        ...(capabilities && { capabilities }),
         calls: [
           {
             to: request.to as `0x${string}`,
@@ -242,8 +241,8 @@ export class TokenHandler {
               description: `Transfer ${request.amount} ${token.symbol} on ${this.networkConfig.name}`,
               transactionType: "transfer",
               currency: token.symbol,
-              amount: amountInDecimals,
-              decimals: token.decimals,
+              amount: amountInDecimals.toString(),
+              decimals: token.decimals.toString(),
               networkId: this.networkConfig.id,
               ...(shouldIncludeMetadata
                 ? {
@@ -270,7 +269,6 @@ export class TokenHandler {
         version: "1.0",
         from: request.from as `0x${string}`,
         chainId: this.networkConfig.chainId,
-        ...(capabilities && { capabilities }),
         calls: [
           {
             to: token.address as `0x${string}`,
@@ -279,8 +277,8 @@ export class TokenHandler {
               description: `Transfer ${request.amount} ${token.symbol} on ${this.networkConfig.name}`,
               transactionType: "transfer",
               currency: token.symbol,
-              amount: amountInDecimals,
-              decimals: token.decimals,
+              amount: amountInDecimals.toString(),
+              decimals: token.decimals.toString(),
               networkId: this.networkConfig.id,
               ...(shouldIncludeMetadata
                 ? {
