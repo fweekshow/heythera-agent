@@ -9,6 +9,7 @@ import {
 } from "./reminder.js";
 import { 
   getFullSchedule,
+  getSpeakerInfo
 } from "./schedule.js";
 import { sendWelcomeMessage, showHelp } from "./welcome.js";
 
@@ -19,6 +20,7 @@ export const DEFAULT_TOOLS = [
   
   // Schedule tools  
   getFullSchedule,
+  getSpeakerInfo,
 
   
   // Basecamp info

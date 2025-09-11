@@ -3,84 +3,117 @@ import { DateTime } from "luxon";
 import { EVENT_TZ } from "@/constant.js";
 import { z } from "zod";
 
+export const SPEAKERS_DATA = {
+  "Jesse Pollak": {
+    title: "Founder, Base",
+    bio: "Founder of Base, leading the development of the Base blockchain and ecosystem."
+  },
+  "Shan Aggarwal": {
+    title: "Chief Business Officer, Coinbase", 
+    bio: "Chief Business Officer at Coinbase, overseeing business strategy and operations."
+  },
+  "Jacob Horne": {
+    title: "Co-Founder, Zora",
+    bio: "Co-Founder of Zora, building tools for creators and communities onchain."
+  },
+  "Alexander Cutler": {
+    title: "Co-Founder, Aerodrome",
+    bio: "Co-Founder of Aerodrome, developing DeFi infrastructure on Base."
+  },
+  "Brianna Chang": {
+    title: "Head of Product, Virtuals",
+    bio: "Head of Product at Virtuals, working on virtual world and metaverse experiences."
+  }
+};
+
 export const SCHEDULE_DATA = {
   sunday: {
     title: "Sunday 9/14 — Arrival Day",
     events: [
-      "9:00 AM: Alpine Club Lounge Opens",
-      "2:00 PM: Basecamp Check-In",
-      "6:00 PM: Welcome Reception",
+      "9:00 AM: Alpine Club Lounge Opens - Welcome to Stowe. For early arrivals, grab a seat, meet some friends, and settle in.",
+      "2:00 PM: Basecamp Check-In - Drop your bags, pick up your field kit, and get ready for BaseCamp.",
+      "6:00 PM: Welcome Reception - The official kickoff. Drinks, bites, and a chance to meet others building on Base.",
     ],
   },
   monday: {
     title: "Monday 9/15 — Day 1 (Full Programming)",
     events: [
       "8:00–10:00 AM: Breakfast",
-      "10:00 AM: State of Base w/ Jesse Pollak & Special Guests",
-      "10:00–10:20 AM: Fireside Chat (Jesse Pollak & Special Guests)",
-      "10:40–11:00 AM: Panel Discussion on Growth (Special Guests)",
-      "11:30 AM: Workshops Round 1",
-      "12:30 PM: Workshops Round 2",
+      "10:00 AM: State of Base w/ Jesse Pollak & Special Guests - BaseCamp kicks off with a look back on 2025 so far, a reminder of why we're here, and a path forward. Let's keep building in the open.",
+      "10:00–10:20 AM: Fireside Chat - Jesse Pollak & Shan Aggarwal (Chief Business Officer, Coinbase) discuss the current state of the industry and what comes next.",
+      "10:40–11:00 AM: Panel Discussion on Growth - Jesse Pollak, Alexander Cutler (Co-Founder, Aerodrome), Jacob Horne (Co-Founder, Zora), and Brianna Chang (Head of Product, Virtuals) share how they scaled their projects on Base. A conversation on choosing to build onchain, the unlocks that drove growth, and what they've learned that new builders can apply today.",
+      "11:30 AM–12:15 PM: Workshops Round 1 - Base Builder Product Roadmap, Making Onchain Payments Work for Everyone, Arming the Trenches",
+      "12:30–1:15 PM: Workshops Round 2 - Vibe Coding Cook Sesh, Base Ads Vision and Roadmap, Building Agents People Can't Stop Talking To, From Code to Content: How to Make a Viral Video", 
       "1:30–3:00 PM: Lunch",
       "7:00–9:00 PM: Communal Banquet",
-      "",
-      "☀️ Ask me about 'Day Activities' for yoga, pickleball, whiskey tasting & more!",
-      "🌙 Ask me about 'Night Activities' for gaming, karaoke, poker & fire pits!",
+    ],
+    workshops: [
+      "11:30 AM–12:15 PM: Base Builder Product Roadmap - A lightning round of product updates from the leads building the Base stack — Chain, Build, Ads, Account — followed by round table conversations about what's shipping next and how it all connects.",
+      "11:30 AM–12:15 PM: Making Onchain Payments Work for Everyone - How tapping into the next-gen commerce stack helps creators, brands, and platforms cut out middlemen, lower fees, and find customers around the world.",
+      "11:30 AM–12:15 PM: Arming the Trenches - The team behind o1 shares what it takes to support active traders and how to improve.",
+      "12:30–1:15 PM: Vibe Coding Cook Sesh - Sit down with Base DevRel and your favorite vibe-coding tool to spin up a production-ready mini app or agent, no code required.",
+      "12:30–1:15 PM: Base Ads Vision and Roadmap - Meet the Spindl team and learn how onchain ads can help you find the right users. Get a preview of the tools and products they're building to help projects grow sustainably on Base.",
+      "12:30–1:15 PM: Building Agents People Can't Stop Talking To - Learn from XMTP and top builders on how to get the most out of AI agents. See what they enable, how to integrate them into your app, and what best practices are emerging as people grow accustomed to using them.",
+      "12:30–1:15 PM: From Code to Content: How to Make a Viral Video - Boys Club breaks down what actually makes content spread. Learn how to edit, package, and distribute video in ways that build a brand and grow your audience.",
     ],
     dayActivities: [
-      "7:00 AM: Yoga",
-      "8:00 AM: Guided Trail Running", 
-      "All Day: Tattoo Parlour",
+      "7:00 AM: Yoga - Breathe deep, stretch it out. Morning and afternoon sessions taught by local instructors.",
+      "8:00 AM: Guided Trail Running - Start the day with a casual, community-paced run through the nearby trails, focused on connection, momentum, and moving together.",
+      "All Day: Tattoo Parlour - Choose from a selection of Basecamp inspired flash tattoos in our mini onsite tattoo parlor.",
       "All Day: Merch Trading Post",
       "11:00 AM–7:00 PM: Lawn Games",
       "11:00 AM–8:00 PM: Co-work & Co-create",
-      "2:00–4:00 PM: Mushroom Lab",
+      "2:00–4:00 PM: Mushroom Lab - Forage with Spruce Peak's resident mushroom farmer Kevin, and resident chef Sean, to discover the edible secrets of the forest floor.",
       "2:00–3:00 PM: Yoga",
-      "3:00–5:00 PM: Pickleball Tournament",
-      "5:00–6:30 PM: Whiskey Tasting",
+      "3:00–5:00 PM: Pickleball Tournament - A pickleball competition tracked with Bracky. All skill levels are welcome. Paddles and balls provided.",
+      "5:00–6:30 PM: Whiskey Tasting - Savor a curated tasting led by WhistlePig, featuring the Farm Flight lineup: Farmstock, Campstock, and Homestate whiskeys.",
     ],
     nightActivities: [
-      "9:00 PM: Night Hike",
-      "9:00–11:00 PM: Gaming",
-      "9:00–10:30 PM: Whiskey Tasting",
-      "Varies: Karaoke",
-      "Varies: Poker", 
+      "9:00 PM: Night Hike - A guided walk under the stars. Move slowly and mindfully as you tune into the night's sights and sounds. Glow sticks will be provided.",
+      "9:00–11:00 PM: Gaming - A blend of analog and digital gaming experiences, with both casual sessions and bracketed tournaments.",
+      "9:00–10:30 PM: Whiskey Tasting - Savor a curated tasting led by WhistlePig, featuring the Farm Flight lineup: Farmstock, Campstock, and Homestate whiskeys.",
+      "Varies: Karaoke - Who's ready to sing? Step up, cheer others on, and post these moments to the Base App.",
+      "Varies: Poker - Texas Hold 'Em in the ballroom. Beginners to sharks, all are welcome.",
       "Varies: Village Green Fire Pits",
     ],
   },
   tuesday: {
-    title: "Tuesday 9/16 — Day 2 & Closing",
+    title: "Tuesday 9/16 — Day 2",
     events: [
       "8:00–10:00 AM: Breakfast",
-      "10:00 AM: Jesse AMA & Award Ceremony",
-      "11:30 AM: Workshops Round 3",
-      "12:30 PM: Workshops Round 4", 
+      "10:00 AM: Jesse AMA - An open conversation with Jesse. Ask anything about Base, the ecosystem, or where we're heading.",
+      "11:30 AM–12:15 PM: Workshops Round 3 - Mini Apps To Unlock The New Creator Era, Governance Roundtable: Aligning Incentives for the Onchain Economy, Let the Deals Flow: VC and Investment Landscape as Told by Investors",
+      "12:30–1:15 PM: Workshops Round 4 - DeFi Deals: How to Bootstrap TVL on Base, The Base Network State, The Coining Stack: A Deep-Dive on Coining Mechanics",
       "1:30–3:00 PM: Lunch",
-      "7:00 PM: Dinner - Food Truck Festival",
-      "8:00 PM: Live Band Performance",
-      "",
-      "☀️ Ask me about 'Day Activities' for ongoing activities!",
-      "🌙 Ask me about 'Night Activities' for final evening fun!",
+      "7:00 PM: Dinner: Food Truck Festival",
+      "8:00 PM: Live Band Performance - Close out the day with a soundtrack under the stars.",
+    ],
+    workshops: [
+      "11:30 AM–12:15 PM: Mini Apps To Unlock The New Creator Era - From livestreaming to IRL events to social, Base is for creators across every medium. A first look at creator-focused mini apps that make it easier to connect, earn, and grow onchain.",
+      "11:30 AM–12:15 PM: Governance Roundtable: Aligning Incentives for the Onchain Economy - Explore new ways of building support with your community as we enter a new era of governance",
+      "11:30 AM–12:15 PM: Let the Deals Flow: VC and Investment Landscape as Told by Investors - A workshop breaking down where capital is moving, what signals matter, and which narratives are already overhyped. Hear about what investors are excited to back next.",
+      "12:30–1:15 PM: DeFi Deals: How to Bootstrap TVL on Base - A breakdown of three proven strategies to bootstrap liquidity: offchain deals, onchain incentives, and partnerships. Hear real examples and figure out which playbook fits your protocol",
+      "12:30–1:15 PM: The Base Network State - Base's head of Global Builders on how we're shaping Base into a borderless, onchain society. A look at how Balaji's network state framework applies in practice, and the steps we're taking to get there.",
+      "12:30–1:15 PM: The Coining Stack: A Deep-Dive on Coining Mechanics - Coining is emerging as a new engine for creator and trader value. Using real data and live examples from Zora, Paragraph, and more, this session maps out what's working, what isn't, and how others can lean in to push the space forward.",
     ],
     dayActivities: [
-      "All Day: Tattoo Parlour",
+      "All Day: Tattoo Parlour - Choose from a selection of Basecamp inspired flash tattoos in our mini onsite tattoo parlor.",
       "All Day: Merch Trading Post",
       "11:00 AM–7:00 PM: Lawn Games",
       "11:00 AM–8:00 PM: Co-work & Co-create",
-      "4:00–6:00 PM: Pickleball Tournament",
+      "4:00–6:00 PM: Pickleball Tournament - A pickleball competition tracked with Bracky. All skill levels are welcome. Paddles and balls provided.",
     ],
     nightActivities: [
-      "9:00–11:00 PM: Gaming",
-      "Varies: Karaoke",
-      "Varies: Poker",
+      "9:00–11:00 PM: Gaming - A blend of analog and digital gaming experiences, with both casual sessions and bracketed tournaments.",
+      "Varies: Karaoke - Who's ready to sing? Step up, cheer others on, and post these moments to the Base App.",
+      "Varies: Poker - Texas Hold 'Em in the ballroom. Beginners to sharks, all are welcome.",
       "Varies: Village Green Fire Pits",
     ],
   },
   wednesday: {
-    title: "Wednesday 9/17 — Departure",
+    title: "Wednesday 9/17 — Departure Day",
     events: [
       "5:00–10:00 AM: Breakfast",
-      "Departure day",
     ],
   },
 };
@@ -149,6 +182,27 @@ export const getFullSchedule = tool(
     schema: z.object({
       day: z.string().optional().describe("The day to get schedule for: 'Sunday', 'Monday', 'Tuesday', or 'Wednesday'"),
       query: z.string().optional().describe("The specific question or activity being asked about"),
+    }),
+  }
+);
+
+export const getSpeakerInfo = tool(
+  async ({ speakerName }: { speakerName: string }) => {
+    console.log("🔄 Getting speaker info...", speakerName);
+    
+    const speaker = SPEAKERS_DATA[speakerName as keyof typeof SPEAKERS_DATA];
+    
+    if (!speaker) {
+      return `Speaker "${speakerName}" not found. Available speakers: ${Object.keys(SPEAKERS_DATA).join(", ")}`;
+    }
+    
+    return `${speakerName} - ${speaker.title}\n\n${speaker.bio}`;
+  },
+  {
+    name: "GetSpeakerInfo",
+    description: "Get information about a specific speaker at Basecamp 2025. Use when someone asks about speakers, their backgrounds, or who is presenting.",
+    schema: z.object({
+      speakerName: z.string().describe("The name of the speaker to get information about"),
     }),
   }
 );
