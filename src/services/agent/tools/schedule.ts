@@ -124,54 +124,7 @@ export const getFullSchedule = tool(
   async ({ day, query }: { day?: string; query?: string }) => { 
     console.log("🔄 Getting full schedule...", { day, query });
     
-    // Check if this is an activity-specific question for the 4 group activities
-    if (query) {
-      const queryLower = query.toLowerCase();
-      console.log("🔄 Activity question detected, sending Quick Actions...", queryLower);
-      
-      // Import centralized activity group functions
-      const { hasGroupChat, generateActivityGroupQuickActions } = await import("./activityGroups.js");
-      
-      // Find matching activity
-      const activities = ['yoga', 'running', 'pickleball', 'hiking', 'hike'];
-      const activityKey = activities.find(activity => queryLower.includes(activity));
-      
-      if (activityKey && hasGroupChat(activityKey)) {
-        // Find the activity in the schedule
-        let foundActivity = '';
-        
-        // Search Monday activities
-        const mondayData = SCHEDULE_DATA.monday as any;
-        if (mondayData && mondayData.dayActivities) {
-          const dayMatch = mondayData.dayActivities.find((item: string) => 
-            item.toLowerCase().includes(activityKey)
-          );
-          if (dayMatch) foundActivity = dayMatch;
-        }
-        
-        // Search Tuesday activities if not found
-        if (!foundActivity) {
-          const tuesdayData = SCHEDULE_DATA.tuesday as any;
-          if (tuesdayData && tuesdayData.dayActivities) {
-            const dayMatch = tuesdayData.dayActivities.find((item: string) => 
-              item.toLowerCase().includes(activityKey)
-            );
-            if (dayMatch) foundActivity = dayMatch;
-          }
-        }
-        
-        if (foundActivity) {
-          // Generate Quick Actions using centralized function
-          const quickActions = generateActivityGroupQuickActions(activityKey, foundActivity);
-          if (quickActions) {
-            return JSON.stringify({
-              contentType: "coinbase.com/actions:1.0",
-              content: quickActions
-            });
-          }
-        }
-      }
-    }
+    // Just return the schedule information without automatic group joining prompts
     
     // Default: return full schedule data
     return JSON.stringify(SCHEDULE_DATA);
@@ -316,22 +269,6 @@ export const getActivityTime = tool(
     }
     
     if (foundActivity) {
-      // Import centralized activity group functions
-      const { hasGroupChat, generateActivityGroupQuickActions } = await import("./activityGroups.js");
-      
-      // Check if this activity has group chat functionality
-      if (hasGroupChat(activityLower)) {
-        // Generate Quick Actions using centralized function
-        const quickActions = generateActivityGroupQuickActions(activityLower, foundActivity);
-        if (quickActions) {
-          return JSON.stringify({
-            contentType: "coinbase.com/actions:1.0",
-            content: quickActions
-          });
-        }
-      }
-      
-      // Fallback to simple text response
       return `🎯 ${activity} schedule: ${foundActivity}`;
     }
     
