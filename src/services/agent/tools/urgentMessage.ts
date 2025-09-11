@@ -1,6 +1,7 @@
 import type { Client } from "@xmtp/node-sdk";
 import { getName } from '@coinbase/onchainkit/identity';
 import { base } from 'viem/chains';
+import { STAFF_WALLETS } from "@/constant.js";
 
 // Store the client reference for urgent message functionality
 let urgentMessageClient: Client<any> | null = null;
@@ -12,17 +13,6 @@ export function setUrgentMessageClient(client: Client<any>) {
 // Check if someone is staff (using wallet addresses)
 async function isStaffMember(senderInboxId: string): Promise<boolean> {
   // STAFF WALLET ADDRESSES - Event staff and organizers
-  const staffWallets = [
-    "0x22209CFC1397832f32160239C902B10A624cAB1A".toLowerCase(), // Mateo
-    "0x80245b9C0d2Ef322F2554922cA86Cf211a24047F".toLowerCase(), // Claudia
-    "0x40680ECd7e33653A2456bCbAE92DFC9dF2C67304".toLowerCase(), // Aneri
-    "0x2211d1D0020DAEA8039E46Cf1367962070d77DA9".toLowerCase(), // Jesse
-    "0xe88334fB1ACDc9eBDBcA530ce29e1a2DE42903c2".toLowerCase(), // John
-    "0x14D23FF0CB6A59F8CF3B389ca94BEf75c69a68e7".toLowerCase(), // Chintan
-    "0xf732FcD2C9C1Ca16F68a914401614869d39cA9d1".toLowerCase(), // Alex Chen
-    "0x605807906157A721669bAC96B64851CBdF64804B".toLowerCase(), // Ryan M
-    "0xBC3F713b37810538C191bA5dDf32D971EE643dDA".toLowerCase(), // Sarah W
-  ];
   
   try {
     if (!urgentMessageClient) return false;
@@ -39,7 +29,7 @@ async function isStaffMember(senderInboxId: string): Promise<boolean> {
       : `0x${addressFromInboxId}`.toLowerCase();
     
     // Check if wallet address is in staff list
-    const isStaff = staffWallets.includes(formattedAddress);
+    const isStaff = STAFF_WALLETS.includes(formattedAddress);
     console.log(`🔐 Checking staff status for ${formattedAddress}: ${isStaff ? 'STAFF' : 'NOT STAFF'}`);
     return isStaff;
     
@@ -141,36 +131,13 @@ Please respond directly to the attendee.`;
         const peerInboxId = (conversation as any).peerInboxId;
         
         // Staff basenames for direct matching (keep this for now since it works)
-        const staffBasenames = [
-          "0xteo.base.eth",
-          "claudia.base.eth", 
-          "jesse.base.eth",
-          "medusaxenon.base.eth",
-          "kaelis.base.eth"
-        ];
-        
-        // STAFF WALLET ADDRESSES - Event staff and organizers
-        const staffWallets = [
-          "0x22209CFC1397832f32160239C902B10A624cAB1A".toLowerCase(), // Mateo
-          "0x80245b9C0d2Ef322F2554922cA86Cf211a24047F".toLowerCase(), // Claudia
-          "0x40680ECd7e33653A2456bCbAE92DFC9dF2C67304".toLowerCase(), // Aneri
-          "0x2211d1D0020DAEA8039E46Cf1367962070d77DA9".toLowerCase(), // Jesse
-          "0xe88334fB1ACDc9eBDBcA530ce29e1a2DE42903c2".toLowerCase(), // John
-          "0x14D23FF0CB6A59F8CF3B389ca94BEf75c69a68e7".toLowerCase(), // Chintan
-          "0xf732FcD2C9C1Ca16F68a914401614869d39cA9d1".toLowerCase(), // Alex Chen
-          "0x605807906157A721669bAC96B64851CBdF64804B".toLowerCase(), // Ryan M
-          "0xBC3F713b37810538C191bA5dDf32D971EE643dDA".toLowerCase(), // Sarah W
-        ];
-        
+                
         let isStaff = false;
         
         // Check if peerInboxId is directly a staff basename (current working method)
-        if (peerInboxId && staffBasenames.includes(peerInboxId)) {
-          console.log(`🔐 Direct staff basename match: ${peerInboxId}`);
-          isStaff = true;
-        } 
+       
         // Check if peerInboxId is directly a staff wallet address
-        else if (peerInboxId && staffWallets.includes(peerInboxId.toLowerCase())) {
+        if (peerInboxId && STAFF_WALLETS.includes(peerInboxId.toLowerCase())) {
           console.log(`🔐 Direct staff wallet match: ${peerInboxId}`);
           isStaff = true;
         }

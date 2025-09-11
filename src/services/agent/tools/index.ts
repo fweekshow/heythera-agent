@@ -8,7 +8,7 @@ import {
   fetchCurrentDateTime 
 } from "./reminder.js";
 import { 
-  getFullSchedule
+  getFullSchedule,
 } from "./schedule.js";
 import { sendWelcomeMessage, showHelp } from "./welcome.js";
 
@@ -19,6 +19,7 @@ export const DEFAULT_TOOLS = [
   
   // Schedule tools  
   getFullSchedule,
+
   
   // Basecamp info
   fetchBasecampInfo,

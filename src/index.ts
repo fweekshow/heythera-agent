@@ -187,8 +187,10 @@ async function handleMessage(message: DecodedMessage, client: Client) {
             conversationId
           );
           
-          await conversation.send(result);
-          console.log(`✅ Sent broadcast preview: "${result}"`);
+          // Parse the JSON result and send as ActionsContent
+          const actionsData = JSON.parse(result);
+          await (conversation as any).send(actionsData.content, ContentTypeActions);
+          console.log(`✅ Sent broadcast preview with quick actions`);
         } catch (broadcastError: any) {
           await conversation.send(`❌ Broadcast preview failed: ${broadcastError.message}`);
           console.error("❌ Broadcast error:", broadcastError);
@@ -196,38 +198,6 @@ async function handleMessage(message: DecodedMessage, client: Client) {
         return;
       }
       
-      // Check for broadcast confirmation command (Yes/No responses) - only if broadcast was started
-      const broadcastContext = getConversationContext(senderInboxId);
-      if (!isGroup && (cleanContent.toLowerCase() === "yes" || cleanContent.toLowerCase() === "/confirm") && broadcastContext.includes("broadcast")) {
-        try {
-          const { confirmBroadcast } = await import("./services/agent/tools/broadcast.js");
-          
-          const result = await confirmBroadcast(senderInboxId, conversationId);
-          
-          await conversation.send(result);
-          console.log(`✅ Broadcast confirmation result: "${result}"`);
-        } catch (confirmError: any) {
-          await conversation.send(`❌ Confirmation failed: ${confirmError.message}`);
-          console.error("❌ Confirmation error:", confirmError);
-        }
-        return;
-      }
-      
-      // Check for broadcast cancel command (No responses)
-      if (!isGroup && (cleanContent.toLowerCase() === "no" || cleanContent.toLowerCase() === "/cancel")) {
-        try {
-          const { cancelBroadcast } = await import("./services/agent/tools/broadcast.js");
-          
-          const result = await cancelBroadcast(senderInboxId);
-          
-          await conversation.send(result);
-          console.log(`✅ Broadcast cancelled`);
-        } catch (cancelError: any) {
-          await conversation.send(`❌ Cancel failed: ${cancelError.message}`);
-          console.error("❌ Cancel error:", cancelError);
-        }
-        return;
-      }
       
       // Check for DM me command to establish DM connection
       if (cleanContent.toLowerCase().includes("dm me") || cleanContent.toLowerCase().includes("start dm")) {
@@ -256,7 +226,7 @@ async function handleMessage(message: DecodedMessage, client: Client) {
       const messageWithContext = conversationContext + cleanContent;
       
       // Use AI to detect if this is a greeting/engagement message
-      const greetingCheckPrompt = `Is this message a greeting, casual hello, or someone starting a conversation? Examples: "hi", "hello", "hey", "yoooo", "what's up", "sup", "howdy", "good morning", "gm", "yo", "hey there", etc. 
+      const greetingCheckPrompt = `Is this message a greeting, casual hello, or someone starting a conversation? Examples: "hi", "hello", "hey", "yoooo", "what's up", "sup", "howdy", "good morning", "gm", "yo", "hey there", "bm", "based morning" etc. 
 
 Message: "${cleanContent}"
 
@@ -316,15 +286,31 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
         }
       }
 
-      // Check if this is an activity question for the 4 group activities
-      const activityQuestionPattern = /(what time|when).*(yoga|running|pickleball|hiking)/i;
-      const isActivityQuestion = cleanContent.match(activityQuestionPattern);
+      // Use AI to detect if this is an activity question for the 4 group activities
+      const activityCheckPrompt = `Is this message asking about the timing or schedule for yoga, running, pickleball, or hiking activities? Examples: "What time is yoga?", "When is the hike?", "When does running start?", "What time is pickleball?", "When is hiking?", etc.
 
-      if (isActivityQuestion) {
-        console.log("🎯 Activity question detected, sending Quick Actions...");
+Message: "${cleanContent}"
+
+Respond with only one activity: "hike", "pickleball", "running", or "yoga".
+
+Map any activity (including variations/synonyms like hiking → hike, jogging → running, etc.) to the closest one in the list.
+
+If the query is not about an activity (e.g., greetings like hey, questions, or unrelated text), respond with "NO".`;
+
+      const isActivityQuestion = await agent.run(
+        activityCheckPrompt,
+        senderInboxId,
+        conversationId,
+        isGroup,
+        senderAddress,
+      );
+      console.log("🔍 isActivityQuestion", isActivityQuestion);
+      if (isActivityQuestion && ["hike", "pickleball", "running", "yoga"].includes(isActivityQuestion.toLowerCase())) {
+        console.log("🎯 AI detected activity question, sending Quick Actions...");
         try {
-          const activityMatch = cleanContent.toLowerCase().match(/(yoga|running|pickleball|hiking)/);
-          const activity = activityMatch ? activityMatch[0] : '';
+          // Extract activity from the message
+          const activity = isActivityQuestion.toLowerCase();
+          console.log("🔍 activity", activity);
           
           if (activity) {
             // Find the activity in the schedule
@@ -353,36 +339,30 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
               }
             }
             
+            // Search night activities if not found
+            if (!foundActivity) {
+              const mondayData = SCHEDULE_DATA.monday as any;
+              if (mondayData.nightActivities) {
+                const nightMatch = mondayData.nightActivities.find((item: string) => 
+                  item.toLowerCase().includes(activity)
+                );
+                if (nightMatch) foundActivity = nightMatch;
+              }
+            }
+            
             if (foundActivity) {
-              const activityGroupMap = {
-                'yoga': 'join_yoga',
-                'running': 'join_running', 
-                'pickleball': 'join_pickleball',
-                'hiking': 'join_hiking'
-              };
+              // Import centralized activity group functions
+              const { generateActivityGroupQuickActions } = await import("./services/agent/tools/activityGroups.js");
               
-              const actionsContent: ActionsContent = {
-                id: `${activity}_group_join`,
-                description: `🎯 ${activity.charAt(0).toUpperCase() + activity.slice(1)} schedule: ${foundActivity}
-
-Would you like me to add you to the ${activity.charAt(0).toUpperCase() + activity.slice(1)} @ Basecamp group chat?`,
-                actions: [
-                  {
-                    id: activityGroupMap[activity as keyof typeof activityGroupMap],
-                    label: "✅ Yes, Add Me",
-                    style: "primary"
-                  },
-                  {
-                    id: "no_group_join",
-                    label: "❌ No Thanks", 
-                    style: "secondary"
-                  }
-                ]
-              };
-              
-              await (conversation as any).send(actionsContent, ContentTypeActions);
-              addToConversationHistory(senderInboxId, cleanContent, "Activity group Quick Actions sent");
-              return; // Skip AI agent
+              const quickActions = generateActivityGroupQuickActions(activity, foundActivity);
+              if (quickActions) {
+                await (conversation as any).send(quickActions, ContentTypeActions);
+                console.log(`✅ Sent activity group Quick Actions for ${activity}`);
+                
+                // Store this exchange in conversation history
+                addToConversationHistory(senderInboxId, cleanContent, "Activity group Quick Actions sent");
+                return; // Skip AI agent
+              }
             }
           }
         } catch (activityError) {
@@ -392,14 +372,6 @@ Would you like me to add you to the ${activity.charAt(0).toUpperCase() + activit
       }
 
       // Check if this is a casual acknowledgment
-      const isCasualMessage = cleanContent.toLowerCase().match(/^(cool|nice|thanks|thank you|ok|okay|sure|yeah|yep|got it|sounds good)$/);
-
-      if (isCasualMessage) {
-        console.log("👍 Casual message detected, sending emoji response");
-        await conversation.send("👍 You're welcome! Feel free to ask me about anything else!");
-        addToConversationHistory(senderInboxId, cleanContent, "Casual acknowledgment response sent");
-        return; // Skip AI agent
-      }
 
       // Check if this is an urgent message (only after user clicked "urgent_yes")
       const urgentContext = getConversationContext(senderInboxId);
@@ -677,11 +649,33 @@ Is there anything else I can help you with regarding Basecamp 2025?`);
           break;
         case "join_hiking":
           const { addMemberToActivityGroup: addHiking } = await import("./services/agent/tools/activityGroups.js");
-          const hikingResult = await addHiking("hiking", message.senderInboxId);
+          const hikingResult = await addHiking("hike", message.senderInboxId);
           await conversation.send(hikingResult);
           break;
         case "no_group_join":
           await conversation.send("👍 No problem! Feel free to ask me about other activities or anything else regarding Basecamp 2025.");
+          break;
+        case "broadcast_yes":
+          try {
+            const { confirmBroadcast } = await import("./services/agent/tools/broadcast.js");
+            const result = await confirmBroadcast(message.senderInboxId, message.conversationId);
+            await conversation.send(result);
+            console.log(`✅ Broadcast confirmation result: "${result}"`);
+          } catch (confirmError: any) {
+            await conversation.send(`❌ Confirmation failed: ${confirmError.message}`);
+            console.error("❌ Confirmation error:", confirmError);
+          }
+          break;
+        case "broadcast_no":
+          try {
+            const { cancelBroadcast } = await import("./services/agent/tools/broadcast.js");
+            const result = await cancelBroadcast(message.senderInboxId);
+            await conversation.send(result);
+            console.log(`✅ Broadcast cancelled: "${result}"`);
+          } catch (cancelError: any) {
+            await conversation.send(`❌ Cancel failed: ${cancelError.message}`);
+            console.error("❌ Cancel error:", cancelError);
+          }
           break;
         default:
           await conversation.send("Thanks for your selection! How can I help you with Basecamp 2025?");

@@ -88,31 +88,28 @@ export const SCHEDULE_DATA = {
 // Removed fetchBasecampScheduleDetails - using more specific tools instead
 
 export const getFullSchedule = tool(
-  ({ day, query }: { day?: string; query?: string }) => { 
+  async ({ day, query }: { day?: string; query?: string }) => { 
     console.log("🔄 Getting full schedule...", { day, query });
     
     // Check if this is an activity-specific question for the 4 group activities
     if (query) {
       const queryLower = query.toLowerCase();
-      const activityGroupMap = {
-        'yoga': 'join_yoga',
-        'running': 'join_running', 
-        'pickleball': 'join_pickleball',
-        'hiking': 'join_hiking'
-      };
+      console.log("🔄 Activity question detected, sending Quick Actions...", queryLower);
+      
+      // Import centralized activity group functions
+      const { hasGroupChat, generateActivityGroupQuickActions } = await import("./activityGroups.js");
       
       // Find matching activity
-      const activityKey = Object.keys(activityGroupMap).find(key => 
-        queryLower.includes(key)
-      );
+      const activities = ['yoga', 'running', 'pickleball', 'hiking', 'hike'];
+      const activityKey = activities.find(activity => queryLower.includes(activity));
       
-      if (activityKey) {
+      if (activityKey && hasGroupChat(activityKey)) {
         // Find the activity in the schedule
         let foundActivity = '';
         
         // Search Monday activities
         const mondayData = SCHEDULE_DATA.monday as any;
-        if (mondayData.dayActivities) {
+        if (mondayData && mondayData.dayActivities) {
           const dayMatch = mondayData.dayActivities.find((item: string) => 
             item.toLowerCase().includes(activityKey)
           );
@@ -122,7 +119,7 @@ export const getFullSchedule = tool(
         // Search Tuesday activities if not found
         if (!foundActivity) {
           const tuesdayData = SCHEDULE_DATA.tuesday as any;
-          if (tuesdayData.dayActivities) {
+          if (tuesdayData && tuesdayData.dayActivities) {
             const dayMatch = tuesdayData.dayActivities.find((item: string) => 
               item.toLowerCase().includes(activityKey)
             );
@@ -131,28 +128,14 @@ export const getFullSchedule = tool(
         }
         
         if (foundActivity) {
-          // Return Quick Actions for group joining
-          return JSON.stringify({
-            contentType: "coinbase.com/actions:1.0",
-            content: {
-              id: `${activityKey}_group_join`,
-              description: `🎯 ${activityKey.charAt(0).toUpperCase() + activityKey.slice(1)} schedule: ${foundActivity}
-
-Would you like me to add you to the ${activityKey.charAt(0).toUpperCase() + activityKey.slice(1)} @ Basecamp group chat?`,
-              actions: [
-                {
-                  id: activityGroupMap[activityKey as keyof typeof activityGroupMap],
-                  label: "✅ Yes, Add Me",
-                  style: "primary"
-                },
-                {
-                  id: "no_group_join",
-                  label: "❌ No Thanks", 
-                  style: "secondary"
-                }
-              ]
-            }
-          });
+          // Generate Quick Actions using centralized function
+          const quickActions = generateActivityGroupQuickActions(activityKey, foundActivity);
+          if (quickActions) {
+            return JSON.stringify({
+              contentType: "coinbase.com/actions:1.0",
+              content: quickActions
+            });
+          }
         }
       }
     }
@@ -250,7 +233,7 @@ export const getDayActivities = tool(
 );
 
 export const getActivityTime = tool(
-  ({ activity, day }: { activity: string; day?: string }) => {
+  async ({ activity, day }: { activity: string; day?: string }) => {
     console.log("🔄 Getting activity time...", activity, day);
     const searchDay = day?.toLowerCase() || 'monday';
     const scheduleData = SCHEDULE_DATA[searchDay as keyof typeof SCHEDULE_DATA] as any;
@@ -279,44 +262,23 @@ export const getActivityTime = tool(
     }
     
     if (foundActivity) {
-      // Check if this is one of the 4 activities with group chats
-      const activityGroupMap = {
-        'yoga': 'join_yoga',
-        'running': 'join_running', 
-        'pickleball': 'join_pickleball',
-        'hiking': 'join_hiking'
-      };
+      // Import centralized activity group functions
+      const { hasGroupChat, generateActivityGroupQuickActions } = await import("./activityGroups.js");
       
-      const activityKey = Object.keys(activityGroupMap).find(key => 
-        activityLower.includes(key)
-      );
-      
-      if (activityKey) {
-        // Return Quick Actions for group joining
-        return JSON.stringify({
-          contentType: "coinbase.com/actions:1.0",
-          content: {
-            id: `${activityKey}_group_join`,
-            description: `🎯 ${activity} schedule: ${foundActivity}
-
-Would you like me to add you to the ${activityKey.charAt(0).toUpperCase() + activityKey.slice(1)} @ Basecamp group chat?`,
-            actions: [
-              {
-                id: activityGroupMap[activityKey as keyof typeof activityGroupMap],
-                label: "✅ Yes, Add Me",
-                style: "primary"
-              },
-              {
-                id: "no_group_join",
-                label: "❌ No Thanks", 
-                style: "secondary"
-              }
-            ]
-          }
-        });
-      } else {
-        return `🎯 ${activity} schedule: ${foundActivity}`;
+      // Check if this activity has group chat functionality
+      if (hasGroupChat(activityLower)) {
+        // Generate Quick Actions using centralized function
+        const quickActions = generateActivityGroupQuickActions(activityLower, foundActivity);
+        if (quickActions) {
+          return JSON.stringify({
+            contentType: "coinbase.com/actions:1.0",
+            content: quickActions
+          });
+        }
       }
+      
+      // Fallback to simple text response
+      return `🎯 ${activity} schedule: ${foundActivity}`;
     }
     
     return `I couldn't find specific timing for "${activity}". Try asking about day activities or night activities for ${searchDay === 'monday' ? 'Monday' : 'Tuesday'}!`;

@@ -3,6 +3,7 @@ import type { ActionsContent } from "@/xmtp-inline-actions/types/ActionsContent.
 import type { IntentContent } from "@/xmtp-inline-actions/types/IntentContent.js";
 import { getName } from '@coinbase/onchainkit/identity';
 import { base } from 'viem/chains';
+import { STAFF_WALLETS } from "@/constant.js";
 
 // Store the client reference for broadcast functionality
 let broadcastClient: Client<any> | null = null;
@@ -11,20 +12,8 @@ export function setBroadcastClient(client: Client<any>) {
   broadcastClient = client;
 }
 
-// Authorization using basenames - much easier to manage!
+// Authorization using wallet addresses - simpler and more reliable
 async function isAuthorizedBroadcaster(senderInboxId: string): Promise<boolean> {
-  // AUTHORIZED BASENAMES - Add new users here by their basename
-  const authorizedBasenames = [
-    "0xteo.base.eth",
-    "claudia.base.eth",
-    "jesse.base.eth",
-    "medusaxenon.base.eth",
-    "kaelis.base.eth"
-    // Add more basenames here for additional authorized users
-    // "alice.base.eth",
-    // "bob.base.eth",
-  ];
-  
   try {
     if (!broadcastClient) {
       console.log("⚠️ Broadcast client not available for authorization check");
@@ -42,18 +31,13 @@ async function isAuthorizedBroadcaster(senderInboxId: string): Promise<boolean> 
     
     // Ensure address is properly formatted
     const formattedAddress = addressFromInboxId.toLowerCase().startsWith('0x') 
-      ? addressFromInboxId as `0x${string}`
-      : `0x${addressFromInboxId}` as `0x${string}`;
+      ? addressFromInboxId.toLowerCase()
+      : `0x${addressFromInboxId}`.toLowerCase();
     
-    // Try to resolve address to basename
-    const basename = await getName({ 
-      address: formattedAddress, 
-      chain: base 
-    });
+    // Check if wallet address is in staff list
+    const isAuthorized = STAFF_WALLETS.map(w => w.toLowerCase()).includes(formattedAddress);
     
-    const isAuthorized = basename ? authorizedBasenames.includes(basename) : false;
-    
-    console.log(`🔐 Checking broadcast permission for ${basename || formattedAddress}: ${isAuthorized ? 'ALLOWED' : 'DENIED'}`);
+    console.log(`🔐 Checking broadcast permission for ${formattedAddress}: ${isAuthorized ? 'ALLOWED' : 'DENIED'}`);
     return isAuthorized;
     
   } catch (error) {
@@ -156,13 +140,28 @@ export async function previewBroadcast(
       formattedContent: broadcastContent
     });
 
-    // Show preview and ask for confirmation
-    const previewMessage = `📋 BROADCAST PREVIEW\n\n` +
-      `${broadcastContent}\n\n` +
-      `📊 Will be sent to all conversations.\n\n` +
-      `Should I send the message? Respond "Yes" or "No"`;
+    // Show preview and ask for confirmation with Quick Actions
+    const previewActionsContent: ActionsContent = {
+      id: "broadcast_confirmation",
+      description: `📋 BROADCAST PREVIEW\n\n${broadcastContent}\n\n📊 Will be sent to all conversations.\n\nShould I send the message?`,
+      actions: [
+        {
+          id: "broadcast_yes",
+          label: "✅ Yes, Send",
+          style: "primary"
+        },
+        {
+          id: "broadcast_no",
+          label: "❌ No, Cancel",
+          style: "secondary"
+        }
+      ]
+    };
 
-    return previewMessage;
+    return JSON.stringify({
+      contentType: "coinbase.com/actions:1.0",
+      content: previewActionsContent
+    });
     
   } catch (error: any) {
     console.error("❌ Error creating broadcast preview:", error);

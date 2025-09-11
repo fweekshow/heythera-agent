@@ -12,7 +12,7 @@ const ACTIVITY_GROUPS = {
   yoga: "68c08cefd741296b23956360",
   running: "68c08d490b8e399769f63396", 
   pickleball: "68c08ce30b8e399769f63394",
-  hiking: "68c08d59d741296b23956363"
+  hike: "68c08d59d741296b23956363"
 };
 
 // Activity group names for display
@@ -20,7 +20,7 @@ const ACTIVITY_NAMES = {
   yoga: "🧘 Yoga @ Basecamp",
   running: "🏃 Running @ Basecamp",
   pickleball: "🏓 Pickleball @ Basecamp", 
-  hiking: "🥾 Hiking @ Basecamp"
+  hike: "🥾 Hiking @ Basecamp"
 };
 
 // Function to add a user to an activity group
@@ -89,4 +89,63 @@ export function getActivityGroupInfo(activity: keyof typeof ACTIVITY_GROUPS): { 
 // List all available activity groups
 export function getAvailableActivities(): string[] {
   return Object.keys(ACTIVITY_GROUPS);
+}
+
+// Activity group mapping for quick actions
+export const ACTIVITY_GROUP_MAP = {
+  'yoga': 'join_yoga',
+  'running': 'join_running', 
+  'pickleball': 'join_pickleball',
+  'hike': 'join_hiking'
+} as const;
+
+// Normalize activity name (hiking -> hike)
+export function normalizeActivityName(activity: string): string {
+  if (activity === 'hiking') {
+    return 'hike';
+  }
+  return activity;
+}
+
+// Check if an activity has group chat functionality
+export function hasGroupChat(activity: string): boolean {
+  const normalized = normalizeActivityName(activity.toLowerCase());
+  return normalized in ACTIVITY_GROUP_MAP;
+}
+
+// Get the join action ID for an activity
+export function getJoinActionId(activity: string): string | null {
+  const normalized = normalizeActivityName(activity.toLowerCase());
+  return ACTIVITY_GROUP_MAP[normalized as keyof typeof ACTIVITY_GROUP_MAP] || null;
+}
+
+// Generate quick actions for activity group joining
+export function generateActivityGroupQuickActions(activity: string, scheduleInfo: string) {
+  const normalized = normalizeActivityName(activity.toLowerCase());
+  const joinActionId = getJoinActionId(normalized);
+  
+  if (!joinActionId) {
+    return null;
+  }
+
+  const displayName = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  
+  return {
+    id: `${normalized}_group_join`,
+    description: `🎯 ${displayName} schedule: ${scheduleInfo}
+
+Would you like me to add you to the ${displayName} @ Basecamp group chat?`,
+    actions: [
+      {
+        id: joinActionId,
+        label: "✅ Yes, Add Me",
+        style: "primary"
+      },
+      {
+        id: "no_group_join",
+        label: "❌ No Thanks", 
+        style: "secondary"
+      }
+    ]
+  };
 }

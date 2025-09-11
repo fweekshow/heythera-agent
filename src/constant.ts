@@ -37,3 +37,26 @@ export const eventDateFor = (day: string) => {
   const normalized = day.toLowerCase().replace(/[^a-z]/g, "");
   return EVENT_DATES[normalized as keyof typeof EVENT_DATES];
 };
+
+export const STAFF_WALLETS = [
+  "0x22209CFC1397832f32160239C902B10A624cAB1A".toLowerCase(), // Mateo
+  "0x80245b9C0d2Ef322F2554922cA86Cf211a24047F".toLowerCase(), // Claudia
+  "0x40680ECd7e33653A2456bCbAE92DFC9dF2C67304".toLowerCase(), // Aneri
+  "0x2211d1D0020DAEA8039E46Cf1367962070d77DA9".toLowerCase(), // Jesse
+  "0xe88334fB1ACDc9eBDBcA530ce29e1a2DE42903c2".toLowerCase(), // John
+  "0x14D23FF0CB6A59F8CF3B389ca94BEf75c69a68e7".toLowerCase(), // Chintan
+  "0xf732FcD2C9C1Ca16F68a914401614869d39cA9d1".toLowerCase(), // Alex Chen
+  "0x605807906157A721669bAC96B64851CBdF64804B".toLowerCase(), // Ryan M
+  "0xBC3F713b37810538C191bA5dDf32D971EE643dDA".toLowerCase(), // Sarah W
+];
+
+// export const AUTHORIZED_BASENAMES = [
+//     "0xteo.base.eth",
+//     "claudia.base.eth",
+//     "jesse.base.eth",
+//     "medusaxenon.base.eth",
+//     "kaelis.base.eth"
+//     // Add more basenames here for additional authorized users
+//     // "alice.base.eth",
+//     // "bob.base.eth",
+//   ];
