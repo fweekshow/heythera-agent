@@ -23,6 +23,11 @@ export const sendWelcomeMessage = tool(
             id: "concierge_support",
             label: "🎫 Concierge Support", 
             style: "secondary"
+          },
+          {
+            id: "join_groups",
+            label: "👥 Join Groups",
+            style: "secondary"
           }
         ]
       }

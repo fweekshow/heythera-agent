@@ -7,12 +7,69 @@ export function setGroupClient(client: Client<any>) {
   groupClient = client;
 }
 
-// Activity group IDs - extracted from the group URLs
+// Function to initialize the agent by creating/joining activity groups
+export async function initializeAgentInGroups(): Promise<void> {
+  if (!groupClient) {
+    console.log("❌ Group client not initialized");
+    return;
+  }
+
+  console.log("🔄 Initializing agent in activity groups...");
+  
+  // First, let's see what conversations the agent actually has access to
+  await groupClient.conversations.sync();
+  const allConversations = await groupClient.conversations.list();
+  console.log(`🔍 Agent has access to ${allConversations.length} total conversations:`);
+  
+  for (const conv of allConversations) {
+    const type = conv.constructor.name;
+    console.log(`  - ${conv.id} (${type})`);
+    
+    // If it's a group, try to get more details
+    if (type === 'Group') {
+      try {
+        const groupDetails = conv as any;
+        console.log(`    Name: ${groupDetails.name || 'No name'}`);
+        console.log(`    Description: ${groupDetails.description || 'No description'}`);
+        console.log(`    Metadata: ${JSON.stringify(groupDetails.metadata || {})}`);
+        console.log(`    Participants: ${groupDetails.participants?.length || 0} members`);
+      } catch (error) {
+        console.log(`    Could not get group details: ${error}`);
+      }
+    }
+  }
+  
+  // Check if agent has access to all activity groups
+  for (const [activity, groupId] of Object.entries(ACTIVITY_GROUPS)) {
+    try {
+      console.log(`🔄 Checking ${activity} group (${groupId})...`);
+      
+      // Look for group by exact ID match
+      const group = allConversations.find(conv => conv.id === groupId);
+      
+      if (group) {
+        const groupDetails = group as any;
+        console.log(`✅ Found ${activity} group: ${group.id}`);
+        console.log(`   Name: ${groupDetails.name || 'No name'}`);
+        console.log(`   Description: ${groupDetails.description || 'No description'}`);
+      } else {
+        console.log(`❌ ${activity} group not found!`);
+        console.log(`💡 Expected ID: ${groupId}`);
+        console.log(`💡 Agent address: ${(groupClient as any).address || 'unknown'}`);
+      }
+      
+    } catch (error) {
+      console.log(`❌ Error checking ${activity} group:`, error);
+    }
+  }
+}
+
+// Activity group IDs - actual IDs from the groups the agent has access to
 const ACTIVITY_GROUPS = {
-  yoga: "68c08cefd741296b23956360",
-  running: "68c08d490b8e399769f63396", 
-  pickleball: "68c08ce30b8e399769f63394",
-  hike: "68c08d59d741296b23956363"
+  yoga: "30a7bba3a9715180891a807e16be16af",
+  running: "5980087769adb51f37190ac0f9500340", 
+  pickleball: "01cdc3fc34a8810919b953c528135044",
+  hike: "0e11ad71f6cd8808836529bc31fbaffa"
 };
 
 // Activity group names for display
@@ -33,40 +90,50 @@ export async function addMemberToActivityGroup(
       return "❌ Group management system not initialized. Please try again later.";
     }
 
-    const groupId = ACTIVITY_GROUPS[activity];
     const activityName = ACTIVITY_NAMES[activity];
     
+    console.log(`🎯 Adding user ${userInboxId} to ${activityName} group`);
+
+    // Get the group by exact ID match
+    const groupId = ACTIVITY_GROUPS[activity];
     if (!groupId) {
       return "❌ Unknown activity. Available activities: yoga, running, pickleball, hiking";
     }
 
-    console.log(`🎯 Adding user ${userInboxId} to ${activityName} group (${groupId})`);
-
-    // Debug: List all conversations to see what groups we have access to
     await groupClient.conversations.sync();
     const allConversations = await groupClient.conversations.list();
-    console.log(`🔍 Agent has access to ${allConversations.length} total conversations:`);
     
-    for (const conv of allConversations) {
-      const type = conv.constructor.name;
-      console.log(`  - ${conv.id} (${type})`);
-    }
-
-    // Get the group
-    const group = await groupClient.conversations.getConversationById(groupId);
+    // Find the group by exact ID
+    const group = allConversations.find(conv => conv.id === groupId);
+    
     if (!group) {
-      console.log(`❌ Group ${groupId} not found in agent's conversations`);
-      return `❌ Could not find ${activityName} group. The agent may not be a member of this group yet. Group ID: ${groupId}`;
+      console.log(`❌ ${activity} group (${groupId}) not found in agent's conversations`);
+      console.log(`🔍 Available groups:`);
+      allConversations.filter(c => c.constructor.name === 'Group').forEach(conv => {
+        const details = conv as any;
+        console.log(`  - ${conv.id}: ${details.name || 'No name'}`);
+      });
+      return `❌ Could not find ${activityName} group. The agent needs to be added to this group first. Please contact support to add the agent to the ${activityName} group.`;
     }
 
-    // Add the member to the group
-    await (group as any).addMembersByInboxId([userInboxId]);
-    
-    console.log(`✅ Successfully added user to ${activityName} group`);
-    
-    return `✅ Great! I've added you to the ${activityName} group chat. 
+    console.log(`✅ Found ${activity} group: ${group.id}`);
+    console.log(`   Name: ${(group as any).name || 'No name'}`);
 
-You'll now receive updates and can chat with other participants about ${activity} activities during Basecamp 2025!
+    // Add the member to the group using the correct XMTP method
+    try {
+      await (group as any).addMembers([userInboxId]);
+      console.log(`✅ Successfully added user to ${activityName} group`);
+    } catch (addError: any) {
+      if (addError.message?.includes('already') || addError.message?.includes('duplicate')) {
+        console.log(`ℹ️ User was already in ${activityName} group`);
+      } else {
+        throw addError; // Re-throw if it's a different error
+      }
+    }
+    
+    return `✅ Great! You're now in the ${activityName} group chat. 
+
+You'll receive updates and can chat with other participants about ${activity} activities during Basecamp 2025!
 
 Check your group chats to see the conversation.`;
 
@@ -145,6 +212,36 @@ Would you like me to add you to the ${displayName} @ Basecamp group chat?`,
         id: "no_group_join",
         label: "❌ No Thanks", 
         style: "secondary"
+      }
+    ]
+  };
+}
+
+// Generate group selection quick actions for the main "Join Groups" button
+export function generateGroupSelectionQuickActions() {
+  return {
+    id: "group_selection_actions",
+    description: "👥 Which group would you like to join?",
+    actions: [
+      {
+        id: "join_yoga",
+        label: "🧘 Yoga",
+        style: "primary"
+      },
+      {
+        id: "join_running",
+        label: "🏃 Running",
+        style: "primary"
+      },
+      {
+        id: "join_hiking",
+        label: "🥾 Hiking",
+        style: "primary"
+      },
+      {
+        id: "join_pickleball",
+        label: "🏓 Pickleball",
+        style: "primary"
       }
     ]
   };

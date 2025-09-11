@@ -262,6 +262,11 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
                 id: "concierge_support",
                 label: "🎫 Concierge Support", 
                 style: "secondary"
+              },
+              {
+                id: "join_groups",
+                label: "👥 Join Groups",
+                style: "secondary"
               }
             ]
           };
@@ -308,9 +313,9 @@ If the query is not about an activity (e.g., greetings like hey, questions, or u
       if (isActivityQuestion && ["hike", "pickleball", "running", "yoga"].includes(isActivityQuestion.toLowerCase())) {
         console.log("🎯 AI detected activity question, sending Quick Actions...");
         try {
-          // Extract activity from the message
-          const activity = isActivityQuestion.toLowerCase();
-          console.log("🔍 activity", activity);
+           // Extract activity from the message
+           const activity = isActivityQuestion.toLowerCase();
+           console.log("🔍 activity being searched for:", activity);
           
           if (activity) {
             // Find the activity in the schedule
@@ -319,14 +324,17 @@ If the query is not about an activity (e.g., greetings like hey, questions, or u
             // Import schedule data
             const { SCHEDULE_DATA } = await import("./services/agent/tools/schedule.js");
             
-            // Search Monday activities
-            const mondayData = SCHEDULE_DATA.monday as any;
-            if (mondayData.dayActivities) {
-              const dayMatch = mondayData.dayActivities.find((item: string) => 
-                item.toLowerCase().includes(activity)
-              );
-              if (dayMatch) foundActivity = dayMatch;
-            }
+             // Search Monday activities
+             const mondayData = SCHEDULE_DATA.monday as any;
+             console.log("🔍 Searching Monday dayActivities for:", activity);
+             console.log("🔍 Monday dayActivities:", mondayData.dayActivities);
+             if (mondayData.dayActivities) {
+               const dayMatch = mondayData.dayActivities.find((item: string) => 
+                 item.toLowerCase().includes(activity)
+               );
+               console.log("🔍 Monday dayMatch:", dayMatch);
+               if (dayMatch) foundActivity = dayMatch;
+             }
             
             // Search Tuesday activities if not found
             if (!foundActivity) {
@@ -350,20 +358,26 @@ If the query is not about an activity (e.g., greetings like hey, questions, or u
               }
             }
             
-            if (foundActivity) {
-              // Import centralized activity group functions
-              const { generateActivityGroupQuickActions } = await import("./services/agent/tools/activityGroups.js");
-              
-              const quickActions = generateActivityGroupQuickActions(activity, foundActivity);
-              if (quickActions) {
-                await (conversation as any).send(quickActions, ContentTypeActions);
-                console.log(`✅ Sent activity group Quick Actions for ${activity}`);
-                
-                // Store this exchange in conversation history
-                addToConversationHistory(senderInboxId, cleanContent, "Activity group Quick Actions sent");
-                return; // Skip AI agent
-              }
-            }
+             console.log("🔍 foundActivity:", foundActivity);
+             if (foundActivity) {
+               // Import centralized activity group functions
+               const { generateActivityGroupQuickActions } = await import("./services/agent/tools/activityGroups.js");
+               
+               const quickActions = generateActivityGroupQuickActions(activity, foundActivity);
+               console.log("🔍 generated quickActions:", quickActions);
+               if (quickActions) {
+                 await (conversation as any).send(quickActions, ContentTypeActions);
+                 console.log(`✅ Sent activity group Quick Actions for ${activity}`);
+                 
+                 // Store this exchange in conversation history
+                 addToConversationHistory(senderInboxId, cleanContent, "Activity group Quick Actions sent");
+                 return; // Skip AI agent
+               } else {
+                 console.log("❌ No Quick Actions generated for activity:", activity);
+               }
+             } else {
+               console.log("❌ No activity found in schedule for:", activity);
+             }
           }
         } catch (activityError) {
           console.error("❌ Error sending activity Quick Actions:", activityError);
@@ -476,6 +490,10 @@ async function main() {
     
     // Initialize group client for activity groups
     setGroupClient(client);
+    
+    // Initialize agent in activity groups
+    const { initializeAgentInGroups } = await import("./services/agent/tools/activityGroups.js");
+    await initializeAgentInGroups();
 
     // Initialize reminder dispatcher
     const reminderDispatcher = createReminderDispatcher();
@@ -612,6 +630,11 @@ Is this an urgent matter that needs immediate attention?`,
             ]
           };
           await (conversation as any).send(conciergeActionsContent, ContentTypeActions);
+          break;
+        case "join_groups":
+          const { generateGroupSelectionQuickActions } = await import("./services/agent/tools/activityGroups.js");
+          const groupSelectionActions = generateGroupSelectionQuickActions();
+          await (conversation as any).send(groupSelectionActions, ContentTypeActions);
           break;
         case "urgent_yes":
           // Store that user is in urgent mode
