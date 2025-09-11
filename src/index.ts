@@ -4,6 +4,7 @@ import { isMentioned, removeMention } from "./mentions.js";
 import { AIAgent } from "./services/agent/index.js";
 import { setBroadcastClient } from "./services/agent/tools/broadcast.js";
 import { setUrgentMessageClient } from "./services/agent/tools/urgentMessage.js";
+import { setGroupClient } from "./services/agent/tools/activityGroups.js";
 import {
   createSigner,
   getDbPath,
@@ -195,8 +196,9 @@ async function handleMessage(message: DecodedMessage, client: Client) {
         return;
       }
       
-      // Check for broadcast confirmation command (Yes/No responses)
-      if (!isGroup && (cleanContent.toLowerCase() === "yes" || cleanContent.toLowerCase() === "/confirm")) {
+      // Check for broadcast confirmation command (Yes/No responses) - only if broadcast was started
+      const broadcastContext = getConversationContext(senderInboxId);
+      if (!isGroup && (cleanContent.toLowerCase() === "yes" || cleanContent.toLowerCase() === "/confirm") && broadcastContext.includes("broadcast")) {
         try {
           const { confirmBroadcast } = await import("./services/agent/tools/broadcast.js");
           
@@ -314,6 +316,81 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
         }
       }
 
+      // Check if this is an activity question for the 4 group activities
+      const activityQuestionPattern = /(what time|when).*(yoga|running|pickleball|hiking)/i;
+      const isActivityQuestion = cleanContent.match(activityQuestionPattern);
+
+      if (isActivityQuestion) {
+        console.log("🎯 Activity question detected, sending Quick Actions...");
+        try {
+          const activityMatch = cleanContent.toLowerCase().match(/(yoga|running|pickleball|hiking)/);
+          const activity = activityMatch ? activityMatch[0] : '';
+          
+          if (activity) {
+            // Find the activity in the schedule
+            let foundActivity = '';
+            
+            // Import schedule data
+            const { SCHEDULE_DATA } = await import("./services/agent/tools/schedule.js");
+            
+            // Search Monday activities
+            const mondayData = SCHEDULE_DATA.monday as any;
+            if (mondayData.dayActivities) {
+              const dayMatch = mondayData.dayActivities.find((item: string) => 
+                item.toLowerCase().includes(activity)
+              );
+              if (dayMatch) foundActivity = dayMatch;
+            }
+            
+            // Search Tuesday activities if not found
+            if (!foundActivity) {
+              const tuesdayData = SCHEDULE_DATA.tuesday as any;
+              if (tuesdayData.dayActivities) {
+                const dayMatch = tuesdayData.dayActivities.find((item: string) => 
+                  item.toLowerCase().includes(activity)
+                );
+                if (dayMatch) foundActivity = dayMatch;
+              }
+            }
+            
+            if (foundActivity) {
+              const activityGroupMap = {
+                'yoga': 'join_yoga',
+                'running': 'join_running', 
+                'pickleball': 'join_pickleball',
+                'hiking': 'join_hiking'
+              };
+              
+              const actionsContent: ActionsContent = {
+                id: `${activity}_group_join`,
+                description: `🎯 ${activity.charAt(0).toUpperCase() + activity.slice(1)} schedule: ${foundActivity}
+
+Would you like me to add you to the ${activity.charAt(0).toUpperCase() + activity.slice(1)} @ Basecamp group chat?`,
+                actions: [
+                  {
+                    id: activityGroupMap[activity as keyof typeof activityGroupMap],
+                    label: "✅ Yes, Add Me",
+                    style: "primary"
+                  },
+                  {
+                    id: "no_group_join",
+                    label: "❌ No Thanks", 
+                    style: "secondary"
+                  }
+                ]
+              };
+              
+              await (conversation as any).send(actionsContent, ContentTypeActions);
+              addToConversationHistory(senderInboxId, cleanContent, "Activity group Quick Actions sent");
+              return; // Skip AI agent
+            }
+          }
+        } catch (activityError) {
+          console.error("❌ Error sending activity Quick Actions:", activityError);
+          // Fall through to AI processing
+        }
+      }
+
       // Check if this is a casual acknowledgment
       const isCasualMessage = cleanContent.toLowerCase().match(/^(cool|nice|thanks|thank you|ok|okay|sure|yeah|yep|got it|sounds good)$/);
 
@@ -324,13 +401,9 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
         return; // Skip AI agent
       }
 
-      // Check if this is an urgent message (after user clicked "urgent_yes")
+      // Check if this is an urgent message (only after user clicked "urgent_yes")
       const urgentContext = getConversationContext(senderInboxId);
-      const isUrgentMessage = urgentContext.includes("urgent_yes") || 
-                              cleanContent.toLowerCase().includes("urgent") ||
-                              cleanContent.toLowerCase().includes("emergency") ||
-                              cleanContent.toLowerCase().includes("help") ||
-                              cleanContent.length > 10; // If it's a substantial message after urgent_yes
+      const isUrgentMessage = urgentContext.includes("urgent_yes");
 
       if (isUrgentMessage) {
         console.log("🚨 Urgent message detected, forwarding to staff...");
@@ -428,6 +501,9 @@ async function main() {
     
     // Initialize urgent message client
     setUrgentMessageClient(client);
+    
+    // Initialize group client for activity groups
+    setGroupClient(client);
 
     // Initialize reminder dispatcher
     const reminderDispatcher = createReminderDispatcher();
@@ -523,19 +599,19 @@ async function main() {
 Ask me any questions about the schedule! Here are some examples:
 
 By Day:
-• "What is the schedule on Monday?"
-• "What's happening on Sunday?"
-• "Show me Tuesday's events"
+• What is the schedule on Monday?
+• What's happening on Sunday?
+• Show me Tuesday's events
 
 By Event:
-• "What time does Jesse start speaking?"
-• "When is the Pickleball Tournament on Monday?"
-• "What time is the Welcome Reception?"
+• What time does Jesse start speaking?
+• When is the Pickleball Tournament on Monday?
+• What time is the Welcome Reception?
 
 By Activity Type:
-• "What are the night activities?"
-• "Show me the morning sessions"
-• "What workshops are available?"
+• What are the night activities?
+• Show me the day activities
+• What workshops are available?
 
 Just ask naturally - I understand conversational requests!`);
           break;
@@ -583,6 +659,29 @@ support@basecamp.xyz
 This is the best way to reach our support team for general questions, requests, or non-urgent concerns.
 
 Is there anything else I can help you with regarding Basecamp 2025?`);
+          break;
+        case "join_yoga":
+          const { addMemberToActivityGroup } = await import("./services/agent/tools/activityGroups.js");
+          const yogaResult = await addMemberToActivityGroup("yoga", message.senderInboxId);
+          await conversation.send(yogaResult);
+          break;
+        case "join_running":
+          const { addMemberToActivityGroup: addRunning } = await import("./services/agent/tools/activityGroups.js");
+          const runningResult = await addRunning("running", message.senderInboxId);
+          await conversation.send(runningResult);
+          break;
+        case "join_pickleball":
+          const { addMemberToActivityGroup: addPickleball } = await import("./services/agent/tools/activityGroups.js");
+          const pickleballResult = await addPickleball("pickleball", message.senderInboxId);
+          await conversation.send(pickleballResult);
+          break;
+        case "join_hiking":
+          const { addMemberToActivityGroup: addHiking } = await import("./services/agent/tools/activityGroups.js");
+          const hikingResult = await addHiking("hiking", message.senderInboxId);
+          await conversation.send(hikingResult);
+          break;
+        case "no_group_join":
+          await conversation.send("👍 No problem! Feel free to ask me about other activities or anything else regarding Basecamp 2025.");
           break;
         default:
           await conversation.send("Thanks for your selection! How can I help you with Basecamp 2025?");

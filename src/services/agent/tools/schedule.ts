@@ -3,7 +3,7 @@ import { DateTime } from "luxon";
 import { EVENT_TZ } from "@/constant.js";
 import { z } from "zod";
 
-const SCHEDULE_DATA = {
+export const SCHEDULE_DATA = {
   sunday: {
     title: "Sunday 9/14 — Arrival Day",
     events: [
@@ -88,14 +88,84 @@ const SCHEDULE_DATA = {
 // Removed fetchBasecampScheduleDetails - using more specific tools instead
 
 export const getFullSchedule = tool(
-  () => { console.log("🔄 Getting full schedule...");
+  ({ day, query }: { day?: string; query?: string }) => { 
+    console.log("🔄 Getting full schedule...", { day, query });
+    
+    // Check if this is an activity-specific question for the 4 group activities
+    if (query) {
+      const queryLower = query.toLowerCase();
+      const activityGroupMap = {
+        'yoga': 'join_yoga',
+        'running': 'join_running', 
+        'pickleball': 'join_pickleball',
+        'hiking': 'join_hiking'
+      };
+      
+      // Find matching activity
+      const activityKey = Object.keys(activityGroupMap).find(key => 
+        queryLower.includes(key)
+      );
+      
+      if (activityKey) {
+        // Find the activity in the schedule
+        let foundActivity = '';
+        
+        // Search Monday activities
+        const mondayData = SCHEDULE_DATA.monday as any;
+        if (mondayData.dayActivities) {
+          const dayMatch = mondayData.dayActivities.find((item: string) => 
+            item.toLowerCase().includes(activityKey)
+          );
+          if (dayMatch) foundActivity = dayMatch;
+        }
+        
+        // Search Tuesday activities if not found
+        if (!foundActivity) {
+          const tuesdayData = SCHEDULE_DATA.tuesday as any;
+          if (tuesdayData.dayActivities) {
+            const dayMatch = tuesdayData.dayActivities.find((item: string) => 
+              item.toLowerCase().includes(activityKey)
+            );
+            if (dayMatch) foundActivity = dayMatch;
+          }
+        }
+        
+        if (foundActivity) {
+          // Return Quick Actions for group joining
+          return JSON.stringify({
+            contentType: "coinbase.com/actions:1.0",
+            content: {
+              id: `${activityKey}_group_join`,
+              description: `🎯 ${activityKey.charAt(0).toUpperCase() + activityKey.slice(1)} schedule: ${foundActivity}
+
+Would you like me to add you to the ${activityKey.charAt(0).toUpperCase() + activityKey.slice(1)} @ Basecamp group chat?`,
+              actions: [
+                {
+                  id: activityGroupMap[activityKey as keyof typeof activityGroupMap],
+                  label: "✅ Yes, Add Me",
+                  style: "primary"
+                },
+                {
+                  id: "no_group_join",
+                  label: "❌ No Thanks", 
+                  style: "secondary"
+                }
+              ]
+            }
+          });
+        }
+      }
+    }
+    
+    // Default: return full schedule data
     return JSON.stringify(SCHEDULE_DATA);
   },
   {
     name: "GetFullSchedule",
-    description: "Use this tool to get the full schedule for Basecamp 2025. This tool contains the complete accurate schedule data for September 14-17, 2025 (Sunday-Wednesday).",
+    description: "Use this tool to get the full schedule for Basecamp 2025. This tool contains the complete accurate schedule data for September 14-17, 2025 (Sunday-Wednesday). Also use for activity questions like 'What time is yoga?', 'When is pickleball?'",
     schema: z.object({
-      day: z.string().describe("The day to get schedule for: 'Sunday', 'Monday', 'Tuesday', or 'Wednesday'"),
+      day: z.string().optional().describe("The day to get schedule for: 'Sunday', 'Monday', 'Tuesday', or 'Wednesday'"),
+      query: z.string().optional().describe("The specific question or activity being asked about"),
     }),
   }
 );
@@ -209,7 +279,44 @@ export const getActivityTime = tool(
     }
     
     if (foundActivity) {
-      return `🎯 ${activity} schedule: ${foundActivity}`;
+      // Check if this is one of the 4 activities with group chats
+      const activityGroupMap = {
+        'yoga': 'join_yoga',
+        'running': 'join_running', 
+        'pickleball': 'join_pickleball',
+        'hiking': 'join_hiking'
+      };
+      
+      const activityKey = Object.keys(activityGroupMap).find(key => 
+        activityLower.includes(key)
+      );
+      
+      if (activityKey) {
+        // Return Quick Actions for group joining
+        return JSON.stringify({
+          contentType: "coinbase.com/actions:1.0",
+          content: {
+            id: `${activityKey}_group_join`,
+            description: `🎯 ${activity} schedule: ${foundActivity}
+
+Would you like me to add you to the ${activityKey.charAt(0).toUpperCase() + activityKey.slice(1)} @ Basecamp group chat?`,
+            actions: [
+              {
+                id: activityGroupMap[activityKey as keyof typeof activityGroupMap],
+                label: "✅ Yes, Add Me",
+                style: "primary"
+              },
+              {
+                id: "no_group_join",
+                label: "❌ No Thanks", 
+                style: "secondary"
+              }
+            ]
+          }
+        });
+      } else {
+        return `🎯 ${activity} schedule: ${foundActivity}`;
+      }
     }
     
     return `I couldn't find specific timing for "${activity}". Try asking about day activities or night activities for ${searchDay === 'monday' ? 'Monday' : 'Tuesday'}!`;
