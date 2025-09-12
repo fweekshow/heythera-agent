@@ -291,6 +291,37 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
         }
       }
 
+      // Use AI to detect if this is a group joining request
+      const groupJoinPrompt = `Is this message asking to see, join, or get information about group chats or activity groups? Examples: "join group chats", "show me the groups", "can you show me the group chats", "what groups are available", "I want to join groups", etc.
+
+Message: "${cleanContent}"
+
+Respond with only "YES" or "NO".`;
+
+      const isGroupJoinRequest = await agent.run(
+        groupJoinPrompt,
+        senderInboxId,
+        conversationId,
+        isGroup,
+        senderAddress,
+      );
+      console.log("🔍 isGroupJoinRequest", isGroupJoinRequest);
+      
+      if (isGroupJoinRequest && isGroupJoinRequest.toLowerCase().includes("yes")) {
+        console.log("🎯 AI detected group joining request, sending Quick Actions...");
+        try {
+          const { generateGroupSelectionQuickActions } = await import("./services/agent/tools/activityGroups.js");
+          const groupSelectionActions = generateGroupSelectionQuickActions();
+          await (conversation as any).send(groupSelectionActions, ContentTypeActions);
+          console.log(`✅ Sent group selection Quick Actions`);
+          addToConversationHistory(senderInboxId, cleanContent, "Group selection Quick Actions sent");
+          return; // Exit early, don't process with AI
+        } catch (groupError) {
+          console.error("❌ Error sending group Quick Actions:", groupError);
+          // Fall through to AI processing
+        }
+      }
+
       // Activity questions will be handled by the AI agent using the GetFullSchedule tool
 
       // Check if this is a casual acknowledgment
@@ -309,7 +340,7 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
           return; // Skip AI agent
         } catch (error) {
           console.error("❌ Error forwarding urgent message:", error);
-          await conversation.send("❌ Failed to forward your urgent message. Please contact support@basecamp.xyz directly.");
+          await conversation.send("❌ Failed to forward your urgent message. Please contact concierge@base.org directly.");
           return;
         }
       }
@@ -492,26 +523,21 @@ async function main() {
       // Handle different action IDs
       switch (actionId) {
         case "schedule":
-          await conversation.send(`📅 Basecamp 2025 Schedule Helper
-
-Ask me any questions about the schedule! Here are some examples:
-
-By Day:
-• What is the schedule on Monday?
-• What's happening on Sunday?
-• Show me Tuesday's events
-
-By Event:
-• What time does Jesse start speaking?
-• When is the Pickleball Tournament on Monday?
-• What time is the Welcome Reception?
-
-By Activity Type:
-• What are the night activities?
-• Show me the day activities
-• What workshops are available?
-
-Just ask naturally - I understand conversational requests!`);
+          // Use AI agent to provide schedule information
+          try {
+            const scheduleResponse = await agent.run(
+              "Please provide a helpful overview of the Basecamp 2025 schedule. Show the main events and activities for each day in a clear, organized way.",
+              message.senderInboxId,
+              message.conversationId,
+              false, // isGroup
+              "", // senderAddress
+            );
+            await conversation.send(scheduleResponse);
+            addToConversationHistory(message.senderInboxId, "schedule", "Schedule overview requested");
+          } catch (error) {
+            console.error("❌ Error getting schedule:", error);
+            await conversation.send("I'm having trouble accessing the schedule right now. Please try again in a moment!");
+          }
           break;
         case "set_reminder":
           await conversation.send("I can help you set reminders! Just tell me what you'd like to be reminded about and when. For example: 'Remind me about the Welcome Reception 30 minutes before it starts'");
@@ -557,7 +583,7 @@ What's the issue you're experiencing?`);
           await conversation.send(`📧 Non-Urgent Support
 
 For non-urgent matters, please send a message to:
-support@basecamp.xyz
+concierge@base.org
 
 This is the best way to reach our support team for general questions, requests, or non-urgent concerns.
 

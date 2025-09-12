@@ -113,7 +113,7 @@ Please respond directly to the attendee.`;
     const conversations = await urgentMessageClient.conversations.list();
     
     if (conversations.length === 0) {
-      return "❌ No conversations found to send urgent message to. Please contact support@basecamp.xyz directly.";
+      return "❌ No conversations found to send urgent message to. Please contact concierge@base.org directly.";
     }
 
     let successCount = 0;
@@ -174,6 +174,6 @@ Please respond directly to the attendee.`;
     
   } catch (error: any) {
     console.error("❌ Error forwarding urgent message:", error);
-    return "❌ Failed to forward urgent message. Please contact support@basecamp.xyz directly.";
+    return "❌ Failed to forward urgent message. Please contact concierge@base.org directly.";
   }
 }

@@ -124,7 +124,64 @@ export const getFullSchedule = tool(
   async ({ day, query }: { day?: string; query?: string }) => { 
     console.log("🔄 Getting full schedule...", { day, query });
     
-    // Just return the schedule information without automatic group joining prompts
+    // If there's a specific query, search for relevant content
+    if (query) {
+      const queryLower = query.toLowerCase();
+      console.log("🔍 Searching schedule for:", queryLower);
+      
+      // Search through all schedule data for relevant content
+      const results: string[] = [];
+      
+      // Search Monday
+      const monday = SCHEDULE_DATA.monday as any;
+      if (monday.events) {
+        monday.events.forEach((event: string) => {
+          if (event.toLowerCase().includes(queryLower)) {
+            results.push(`Monday: ${event}`);
+          }
+        });
+      }
+      if (monday.workshops) {
+        monday.workshops.forEach((workshop: any) => {
+          const workshopText = `${workshop.title} - ${workshop.description}`;
+          if (workshopText.toLowerCase().includes(queryLower)) {
+            results.push(`Monday: ${workshop.title} (${workshop.time}) - ${workshop.description}`);
+          }
+        });
+      }
+      
+      // Search Tuesday
+      const tuesday = SCHEDULE_DATA.tuesday as any;
+      if (tuesday.events) {
+        tuesday.events.forEach((event: string) => {
+          if (event.toLowerCase().includes(queryLower)) {
+            results.push(`Tuesday: ${event}`);
+          }
+        });
+      }
+      if (tuesday.workshops) {
+        tuesday.workshops.forEach((workshop: any) => {
+          const workshopText = `${workshop.title} - ${workshop.description}`;
+          if (workshopText.toLowerCase().includes(queryLower)) {
+            results.push(`Tuesday: ${workshop.title} (${workshop.time}) - ${workshop.description}`);
+          }
+        });
+      }
+      
+      if (results.length > 0) {
+        return `Here are the talks and events related to "${query}":\n\n${results.join('\n\n')}`;
+      } else {
+        return `I couldn't find any specific talks about "${query}" in the schedule. Here's the full schedule for you to browse:\n\n${JSON.stringify(SCHEDULE_DATA, null, 2)}`;
+      }
+    }
+    
+    // If specific day requested, return that day's schedule
+    if (day) {
+      const dayKey = day.toLowerCase();
+      if (dayKey in SCHEDULE_DATA) {
+        return JSON.stringify(SCHEDULE_DATA[dayKey as keyof typeof SCHEDULE_DATA]);
+      }
+    }
     
     // Default: return full schedule data
     return JSON.stringify(SCHEDULE_DATA);
