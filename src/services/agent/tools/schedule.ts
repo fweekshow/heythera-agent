@@ -45,7 +45,7 @@ export const SCHEDULE_DATA = {
       "11:30 AM–12:15 PM: Workshops Round 1 - Base Builder Product Roadmap, Making Onchain Payments Work for Everyone, Arming the Trenches",
       "12:30–1:15 PM: Workshops Round 2 - Vibe Coding Cook Sesh, Base Ads Vision and Roadmap, Building Agents People Can't Stop Talking To, From Code to Content: How to Make a Viral Video", 
       "1:30–3:00 PM: Lunch",
-      "7:00–9:00 PM: Communal Banquet",
+      "7:00–9:00 PM: Communal Banquet - Dinner",
     ],
     workshops: [
       "11:30 AM–12:15 PM: Base Builder Product Roadmap - A lightning round of product updates from the leads building the Base stack — Chain, Build, Ads, Account — followed by round table conversations about what's shipping next and how it all connects.",

@@ -221,13 +221,11 @@ async function handleMessage(message: DecodedMessage, client: Client) {
       }
       
       // Use AI to detect if this is a single activity keyword
-      const activityDetectionPrompt = `Is this message a single activity keyword that matches one of these activities: yoga, running, pickleball, hiking?
+      const activityDetectionPrompt = `Is this message a single activity keyword that matches one of these activities: yoga, running, pickleball, hiking, builder, payments, trenches, coding, ads, agents, video, roast, mini app, governance, deals, defi, network, coining, students?
 
 Return with the exact keyword:
-- "hiking"
-- "yoga" 
-- "running"
-- "pickleball"
+- "hiking", "yoga", "running", "pickleball" (physical activities)
+- "builder", "payments", "trenches", "coding", "ads", "agents", "video", "roast", "mini app", "governance", "deals", "defi", "network", "coining", "students" (workshop sessions)
 
 Examples that should return NO:
 - "hello"
@@ -235,10 +233,11 @@ Examples that should return NO:
 - "show me the schedule"
 - "join groups"
 - "hiking at 7am"
+- "base app" (should be "roast")
 
 Message: "${cleanContent}"
 
-Respond with only only exact keyword or nothing.`;
+Respond with only the exact keyword or nothing.`;
 
       const isSingleActivityKeyword = await agent.run(
         activityDetectionPrompt,
@@ -354,6 +353,121 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
           addToConversationHistory(senderInboxId, cleanContent, "Welcome message sent (fallback)");
           return;
         }
+      }
+
+      // PRIORITY CHECK: Is this ANY kind of question that should be answered?
+      const generalQuestionPrompt = `Is this message asking ANY kind of question that needs an informational answer? This includes:
+
+SCHEDULE QUESTIONS:
+- "What time does [anything] start/end?"
+- "When is [any event/session/activity]?"
+- "What's happening on [day]?"
+- "Who is speaking at [event]?"
+- "What's the schedule for [anything]?"
+
+EVENT/SPEAKER QUESTIONS:
+- Questions about Jesse Pollak, Shan Aggarwal, speakers, presenters
+- Questions about specific sessions, workshops, activities
+- Questions about event logistics, times, locations
+
+GENERAL INFO QUESTIONS:
+- "What is [anything]?"
+- "How does [anything] work?"
+- "Where is [anything]?"
+- "Is there [anything]?"
+- "Can I [do something]?"
+
+ACTIVITY QUESTIONS:
+- Questions about yoga, pickleball, hiking, running, workshops, sessions, builder, payments, trenches, coding, ads, agents, video, roast, mini app, governance, deals, defi, network, coining, students
+If it contains ANY question that needs an answer, respond "YES".
+If it's just greetings, commands, or statements, respond "NO".
+
+Message: "${cleanContent}"
+
+Respond with only "YES" or "NO".`;
+
+      const hasQuestion = await agent.run(
+        generalQuestionPrompt,
+        senderInboxId,
+        conversationId,
+        isGroup,
+        senderAddress,
+      );
+      console.log("🔍 hasQuestion", hasQuestion);
+      
+      if (hasQuestion && hasQuestion.toLowerCase().includes("yes")) {
+        console.log("🎯 AI detected question - processing with full AI agent...");
+        
+        // Check if this question is about a specific activity group
+        const activityQuestionPrompt = `Does this message ask about a specific activity that has a group chat? Look for questions about: yoga, running, pickleball, hiking, builder, payments, trenches, coding, ads, agents, video, roast, mini app, governance, deals, defi, network, coining, students
+
+If it asks about one of these activities, respond with the exact activity keyword.
+If not, respond with "NO".
+
+Message: "${cleanContent}"
+
+Respond with only the activity keyword or "NO".`;
+
+        const activityKeyword = await agent.run(
+          activityQuestionPrompt,
+          senderInboxId,
+          conversationId,
+          isGroup,
+          senderAddress,
+        );
+        console.log("🔍 activityKeyword", activityKeyword);
+        
+        // Generate AI response first
+        const response = await agent.run(
+          messageWithContext,
+          senderInboxId,
+          conversationId,
+          isGroup,
+          senderAddress,
+        );
+        
+        // If it's about a specific activity with a group, combine response with join option
+        if (activityKeyword && activityKeyword.toLowerCase() !== "no") {
+          const { hasGroupChat, getJoinActionId } = await import("./services/agent/tools/activityGroups.js");
+          const keyword = activityKeyword.trim().toLowerCase();
+          
+          if (hasGroupChat(keyword)) {
+            const displayName = keyword.charAt(0).toUpperCase() + keyword.slice(1);
+            const joinActionId = getJoinActionId(keyword);
+            
+            const combinedActions: ActionsContent = {
+              id: `${keyword}_question_with_join`,
+              description: `${response}
+
+Would you like me to add you to the ${displayName} @ Basecamp group chat?`,
+              actions: [
+                {
+                  id: joinActionId || "",
+                  label: "✅ Yes, Add Me",
+                  style: "primary"
+                },
+                {
+                  id: "no_group_join",
+                  label: "❌ No Thanks", 
+                  style: "secondary"
+                }
+              ]
+            };
+            
+            await (conversation as any).send(combinedActions, ContentTypeActions);
+            console.log(`✅ Sent combined question response with group join option`);
+            addToConversationHistory(senderInboxId, cleanContent, `${response} + group join option`);
+            return; // Exit early
+          }
+        }
+        
+        // If no group join option, just send the AI response
+        if (response) {
+          await conversation.send(response);
+          addToConversationHistory(senderInboxId, cleanContent, response);
+        }
+        
+        return; // Exit early - question has been fully handled
       }
 
       // Use AI to detect if this is a group joining request
@@ -686,6 +800,81 @@ Is there anything else I can help you with regarding Basecamp 2025?`);
           const { addMemberToActivityGroup: addHiking } = await import("./services/agent/tools/activityGroups.js");
           const hikingResult = await addHiking("hiking", message.senderInboxId);
           await conversation.send(hikingResult);
+          break;
+        case "join_builder":
+          const { addMemberToActivityGroup: addBuilder } = await import("./services/agent/tools/activityGroups.js");
+          const builderResult = await addBuilder("builder", message.senderInboxId);
+          await conversation.send(builderResult);
+          break;
+        case "join_payments":
+          const { addMemberToActivityGroup: addPayments } = await import("./services/agent/tools/activityGroups.js");
+          const paymentsResult = await addPayments("payments", message.senderInboxId);
+          await conversation.send(paymentsResult);
+          break;
+        case "join_trenches":
+          const { addMemberToActivityGroup: addTrenches } = await import("./services/agent/tools/activityGroups.js");
+          const trenchesResult = await addTrenches("trenches", message.senderInboxId);
+          await conversation.send(trenchesResult);
+          break;
+        case "join_coding":
+          const { addMemberToActivityGroup: addCoding } = await import("./services/agent/tools/activityGroups.js");
+          const codingResult = await addCoding("coding", message.senderInboxId);
+          await conversation.send(codingResult);
+          break;
+        case "join_ads":
+          const { addMemberToActivityGroup: addAds } = await import("./services/agent/tools/activityGroups.js");
+          const adsResult = await addAds("ads", message.senderInboxId);
+          await conversation.send(adsResult);
+          break;
+        case "join_agents":
+          const { addMemberToActivityGroup: addAgents } = await import("./services/agent/tools/activityGroups.js");
+          const agentsResult = await addAgents("agents", message.senderInboxId);
+          await conversation.send(agentsResult);
+          break;
+        case "join_video":
+          const { addMemberToActivityGroup: addVideo } = await import("./services/agent/tools/activityGroups.js");
+          const videoResult = await addVideo("video", message.senderInboxId);
+          await conversation.send(videoResult);
+          break;
+        case "join_roast":
+          const { addMemberToActivityGroup: addRoast } = await import("./services/agent/tools/activityGroups.js");
+          const roastResult = await addRoast("roast", message.senderInboxId);
+          await conversation.send(roastResult);
+          break;
+        case "join_mini_app":
+          const { addMemberToActivityGroup: addMiniApp } = await import("./services/agent/tools/activityGroups.js");
+          const miniAppResult = await addMiniApp("mini app", message.senderInboxId);
+          await conversation.send(miniAppResult);
+          break;
+        case "join_governance":
+          const { addMemberToActivityGroup: addGovernance } = await import("./services/agent/tools/activityGroups.js");
+          const governanceResult = await addGovernance("governance", message.senderInboxId);
+          await conversation.send(governanceResult);
+          break;
+        case "join_deals":
+          const { addMemberToActivityGroup: addDeals } = await import("./services/agent/tools/activityGroups.js");
+          const dealsResult = await addDeals("deals", message.senderInboxId);
+          await conversation.send(dealsResult);
+          break;
+        case "join_defi":
+          const { addMemberToActivityGroup: addDefi } = await import("./services/agent/tools/activityGroups.js");
+          const defiResult = await addDefi("defi", message.senderInboxId);
+          await conversation.send(defiResult);
+          break;
+        case "join_network":
+          const { addMemberToActivityGroup: addNetwork } = await import("./services/agent/tools/activityGroups.js");
+          const networkResult = await addNetwork("network", message.senderInboxId);
+          await conversation.send(networkResult);
+          break;
+        case "join_coining":
+          const { addMemberToActivityGroup: addCoining } = await import("./services/agent/tools/activityGroups.js");
+          const coiningResult = await addCoining("coining", message.senderInboxId);
+          await conversation.send(coiningResult);
+          break;
+        case "join_students":
+          const { addMemberToActivityGroup: addStudents } = await import("./services/agent/tools/activityGroups.js");
+          const studentsResult = await addStudents("students", message.senderInboxId);
+          await conversation.send(studentsResult);
           break;
         case "no_group_join":
           await conversation.send("👍 No problem! Feel free to ask me about other activities or anything else regarding Basecamp 2025.");

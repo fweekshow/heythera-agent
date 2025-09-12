@@ -66,19 +66,54 @@ export async function initializeAgentInGroups(): Promise<void> {
 
 // Activity group IDs - actual IDs from the groups the agent has access to
 const ACTIVITY_GROUPS = {
+  // Physical Activities
   yoga: "30a7bba3a9715180891a807e16be16af",
   running: "5980087769adb51f37190ac0f9500340", 
   pickleball: "01cdc3fc34a8810919b953c528135044",
-  hiking: "0e11ad71f6cd8808836529bc31fbaffa"
-
+  hiking: "0e11ad71f6cd8808836529bc31fbaffa",
+  
+  // Workshop Sessions
+  builder: "2d7ac518445f313168be7defbf33e2b2",
+  payments: "d8c73c3a75b92aa59f49e8114b787675",
+  trenches: "2a715655d7454de01a211d73802016d4",
+  coding: "5ada589ba100827332fd6d3c61c88563",
+  ads: "2a0b1d26b7c324c6660a6ffe093581dc",
+  agents: "15ee8a42086526afff10cbe4c0567fd1",
+  video: "02c8c86d70cd652b8e9646feca600cfd",
+  roast: "abe3816d3904c5557f4298bc8408456d",
+  "mini app": "4609a0bd6229b8e19467f03eb6c5ec68",
+  governance: "65f1797010de80b83d047b3021379969",
+  deals: "c9bafb0a22fc7b49dcb8afe4a0b357a8",
+  defi: "d85ddfb052ddf73bb1db3aa6fc09d723",
+  network: "2ec1efe21fcb0f15944091eb27dc39f8",
+  coining: "a265fcb5fb55b9088f28e0e068bccbb2",
+  students: "f9bc3c3369da4f9847ea65f2b02a3ef2"
 };
 
 // Activity group names for display
 const ACTIVITY_NAMES = {
+  // Physical Activities
   yoga: "🧘 Yoga @ Basecamp",
   running: "🏃 Running @ Basecamp",
   pickleball: "🏓 Pickleball @ Basecamp", 
-  hiking: "🥾 Hiking @ Basecamp"
+  hiking: "🥾 Hiking @ Basecamp",
+  
+  // Workshop Sessions
+  builder: "🔨 Base Builder Session @ Basecamp",
+  payments: "💳 Onchain Payments Session @ Basecamp",
+  trenches: "⚔️ Arming the Trenches Session @ Basecamp",
+  coding: "💻 Vibe Coding Session @ Basecamp",
+  ads: "📢 Base Ads Session @ Basecamp",
+  agents: "🤖 Agents Session @ Basecamp",
+  video: "🎬 Viral Videos Session @ Basecamp",
+  roast: "🔥 Base App Roast Session @ Basecamp",
+  "mini app": "📱 Mini Apps Session @ Basecamp",
+  governance: "🏛️ Governance Session @ Basecamp",
+  deals: "💼 VC Landscape Session @ Basecamp",
+  defi: "🪙 DeFi Deals Session @ Basecamp",
+  network: "🌐 Network State Session @ Basecamp",
+  coining: "🪙 Coining Session @ Basecamp",
+  students: "🎓 Students @ Basecamp"
 };
 
 // Function to add a user to an activity group
@@ -161,10 +196,28 @@ export function getAvailableActivities(): string[] {
 
 // Activity group mapping for quick actions
 export const ACTIVITY_GROUP_MAP = {
+  // Physical Activities
   'yoga': 'join_yoga',
   'running': 'join_running', 
   'pickleball': 'join_pickleball',
-  'hiking': 'join_hiking'
+  'hiking': 'join_hiking',
+  
+  // Workshop Sessions
+  'builder': 'join_builder',
+  'payments': 'join_payments',
+  'trenches': 'join_trenches',
+  'coding': 'join_coding',
+  'ads': 'join_ads',
+  'agents': 'join_agents',
+  'video': 'join_video',
+  'roast': 'join_roast',
+  'mini app': 'join_mini_app',
+  'governance': 'join_governance',
+  'deals': 'join_deals',
+  'defi': 'join_defi',
+  'network': 'join_network',
+  'coining': 'join_coining',
+  'students': 'join_students'
 } as const;
 
 // Check if an activity has group chat functionality

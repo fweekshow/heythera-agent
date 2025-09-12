@@ -52,6 +52,13 @@ export const STAFF_WALLETS = [
 
 // Group-related keywords for activity detection and group joining
 export const GROUP_KEYWORDS = [
+  // Physical Activities
+  "yoga",
+  "pickleball", 
+  "hiking",
+  "running",
+  
+  // Workshop Sessions
   "builder",
   "payments", 
   "trenches",
@@ -59,17 +66,14 @@ export const GROUP_KEYWORDS = [
   "ads",
   "agents",
   "video",
-  "base app",
+  "roast",
   "mini app",
   "governance",
   "deals",
   "defi",
   "network",
   "coining",
-  "yoga",
-  "pickleball", 
-  "hiking",
-  "running"
+  "students"
 ];
 
 // export const AUTHORIZED_BASENAMES = [
