@@ -50,6 +50,28 @@ export const STAFF_WALLETS = [
   "0xBC3F713b37810538C191bA5dDf32D971EE643dDA".toLowerCase(), // Sarah W
 ];
 
+// Group-related keywords for activity detection and group joining
+export const GROUP_KEYWORDS = [
+  "builder",
+  "payments", 
+  "trenches",
+  "coding",
+  "ads",
+  "agents",
+  "video",
+  "base app",
+  "mini app",
+  "governance",
+  "deals",
+  "defi",
+  "network",
+  "coining",
+  "yoga",
+  "pickleball", 
+  "hiking",
+  "running"
+];
+
 // export const AUTHORIZED_BASENAMES = [
 //     "0xteo.base.eth",
 //     "claudia.base.eth",

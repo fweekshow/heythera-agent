@@ -220,6 +220,71 @@ async function handleMessage(message: DecodedMessage, client: Client) {
         }
       }
       
+      // Use AI to detect if this is a single activity keyword
+      const activityDetectionPrompt = `Is this message a single activity keyword that matches one of these activities: yoga, running, pickleball, hiking?
+
+Return with the exact keyword:
+- "hiking"
+- "yoga" 
+- "running"
+- "pickleball"
+
+Examples that should return NO:
+- "hello"
+- "what time is hiking"
+- "show me the schedule"
+- "join groups"
+- "hiking at 7am"
+
+Message: "${cleanContent}"
+
+Respond with only only exact keyword or nothing.`;
+
+      const isSingleActivityKeyword = await agent.run(
+        activityDetectionPrompt,
+        senderInboxId,
+        conversationId,
+        isGroup,
+        senderAddress,
+      );
+      console.log("🔍 isSingleActivityKeyword", isSingleActivityKeyword);
+      
+      if (isSingleActivityKeyword && !isSingleActivityKeyword.toLowerCase().includes("no")) {
+        console.log("🎯 AI detected single activity keyword, sending Quick Actions...");
+        try {
+          const { hasGroupChat, getJoinActionId } = await import("./services/agent/tools/activityGroups.js");
+          const singleKeyword = cleanContent.trim().toLowerCase();
+          const normalized = singleKeyword;
+          const displayName = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+          const joinActionId = getJoinActionId(normalized);
+          
+          if (hasGroupChat(singleKeyword)) {
+            // Find the activity in schedule to get timing info
+            const conciergeActionsContent: ActionsContent = {
+                id: `${normalized}_activity_join`,
+                description: `🎯 ${displayName}
+Would you like me to add you to the ${displayName} @ Basecamp group chat?`,
+                actions: [
+                  {
+                    id: joinActionId || "",
+                    label: "✅ Yes, Add Me",
+                    style: "primary"
+                  },
+                  {
+                    id: "no_group_join",
+                    label: "❌ No Thanks", 
+                    style: "secondary"
+                  }
+                ]
+              };
+            await (conversation as any).send(conciergeActionsContent, ContentTypeActions);
+            return
+          }
+        } catch (activityError) {
+          console.error("❌ Error sending activity Quick Actions:", activityError);
+          // Fall through to AI processing
+        }
+      }
       
       // Get conversation context for this user
       const conversationContext = getConversationContext(senderInboxId);
@@ -525,13 +590,26 @@ async function main() {
         case "schedule":
           // Use AI agent to provide schedule information
           try {
-            const scheduleResponse = await agent.run(
-              "Please provide a helpful overview of the Basecamp 2025 schedule. Show the main events and activities for each day in a clear, organized way.",
-              message.senderInboxId,
-              message.conversationId,
-              false, // isGroup
-              "", // senderAddress
-            );
+            const scheduleResponse = ` 📅 Basecamp 2025 Schedule Helper
+
+Ask me any questions about the schedule! Here are some examples:
+
+By Day:
+•⁠  ⁠What is the schedule on Monday?
+•⁠  ⁠What's happening on Sunday?
+•⁠  ⁠Show me Tuesday's events
+
+By Event:
+•⁠  ⁠What time does Jesse start speaking?
+•⁠  ⁠When is the Pickleball Tournament on Monday?
+•⁠  ⁠What time is the Welcome Reception?
+
+By Activity Type:
+•⁠  ⁠What are the night activities?
+•⁠  ⁠Show me the day activities
+•⁠  ⁠What workshops are available?
+
+Just ask naturally - I understand conversational requests!`;
             await conversation.send(scheduleResponse);
             addToConversationHistory(message.senderInboxId, "schedule", "Schedule overview requested");
           } catch (error) {
@@ -606,7 +684,7 @@ Is there anything else I can help you with regarding Basecamp 2025?`);
           break;
         case "join_hiking":
           const { addMemberToActivityGroup: addHiking } = await import("./services/agent/tools/activityGroups.js");
-          const hikingResult = await addHiking("hike", message.senderInboxId);
+          const hikingResult = await addHiking("hiking", message.senderInboxId);
           await conversation.send(hikingResult);
           break;
         case "no_group_join":

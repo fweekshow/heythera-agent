@@ -69,7 +69,8 @@ const ACTIVITY_GROUPS = {
   yoga: "30a7bba3a9715180891a807e16be16af",
   running: "5980087769adb51f37190ac0f9500340", 
   pickleball: "01cdc3fc34a8810919b953c528135044",
-  hike: "0e11ad71f6cd8808836529bc31fbaffa"
+  hiking: "0e11ad71f6cd8808836529bc31fbaffa"
+
 };
 
 // Activity group names for display
@@ -77,7 +78,7 @@ const ACTIVITY_NAMES = {
   yoga: "🧘 Yoga @ Basecamp",
   running: "🏃 Running @ Basecamp",
   pickleball: "🏓 Pickleball @ Basecamp", 
-  hike: "🥾 Hiking @ Basecamp"
+  hiking: "🥾 Hiking @ Basecamp"
 };
 
 // Function to add a user to an activity group
@@ -163,32 +164,24 @@ export const ACTIVITY_GROUP_MAP = {
   'yoga': 'join_yoga',
   'running': 'join_running', 
   'pickleball': 'join_pickleball',
-  'hike': 'join_hiking'
+  'hiking': 'join_hiking'
 } as const;
-
-// Normalize activity name (hiking -> hike)
-export function normalizeActivityName(activity: string): string {
-  if (activity === 'hiking') {
-    return 'hike';
-  }
-  return activity;
-}
 
 // Check if an activity has group chat functionality
 export function hasGroupChat(activity: string): boolean {
-  const normalized = normalizeActivityName(activity.toLowerCase());
+  const normalized = activity.toLowerCase();
   return normalized in ACTIVITY_GROUP_MAP;
 }
 
 // Get the join action ID for an activity
 export function getJoinActionId(activity: string): string | null {
-  const normalized = normalizeActivityName(activity.toLowerCase());
+  const normalized = activity.toLowerCase();
   return ACTIVITY_GROUP_MAP[normalized as keyof typeof ACTIVITY_GROUP_MAP] || null;
 }
 
 // Generate quick actions for activity group joining
 export function generateActivityGroupQuickActions(activity: string, scheduleInfo: string) {
-  const normalized = normalizeActivityName(activity.toLowerCase());
+  const normalized = activity.toLowerCase();
   const joinActionId = getJoinActionId(normalized);
   
   if (!joinActionId) {
