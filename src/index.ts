@@ -3,7 +3,7 @@ import { createReminderDispatcher } from "./dispatcher.js";
 import { isMentioned, removeMention } from "./mentions.js";
 import { AIAgent } from "./services/agent/index.js";
 import { setBroadcastClient } from "./services/agent/tools/broadcast.js";
-import { setUrgentMessageClient } from "./services/agent/tools/urgentMessage.js";
+// Urgent message system disabled
 import { setGroupClient } from "./services/agent/tools/activityGroups.js";
 import {
   createSigner,
@@ -529,24 +529,7 @@ Respond with only "YES" or "NO".`;
 
       // Check if this is a casual acknowledgment
 
-      // Check if this is an urgent message (only after user clicked "urgent_yes")
-      const urgentContext = getConversationContext(senderInboxId);
-      const isUrgentMessage = urgentContext.includes("urgent_yes");
-
-      if (isUrgentMessage) {
-        console.log("🚨 Urgent message detected, forwarding to staff...");
-        try {
-          const { forwardUrgentMessage } = await import("./services/agent/tools/urgentMessage.js");
-          const result = await forwardUrgentMessage(cleanContent, senderInboxId, conversationId);
-          await conversation.send(result);
-          addToConversationHistory(senderInboxId, cleanContent, "Urgent message forwarded to staff");
-          return; // Skip AI agent
-        } catch (error) {
-          console.error("❌ Error forwarding urgent message:", error);
-          await conversation.send("❌ Failed to forward your urgent message. Please contact concierge@base.org directly.");
-          return;
-        }
-      }
+      // Urgent message blast system disabled - we now only provide contact information
 
       // Generate AI response for non-welcome requests
       const response = await agent.run(
@@ -631,6 +614,22 @@ Is there anything else I can help with?`,
 
 async function main() {
   try {
+    // Get and log current date/time for agent context
+    const now = new Date();
+    const currentDateTime = now.toLocaleString('en-US', {
+      timeZone: 'America/New_York',
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZoneName: 'short'
+    });
+    console.log(`📅 Current Date/Time: ${currentDateTime}`);
+    console.log(`📅 Agent Context: Today is ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`);
+    
     console.log("🔄 Initializing client...");
     const dbPath = getDbPath("basecamp-agent");
     console.log("🔄 DB path:", dbPath);
@@ -647,8 +646,7 @@ async function main() {
     // Initialize broadcast client
     setBroadcastClient(client);
     
-    // Initialize urgent message client
-    setUrgentMessageClient(client);
+    // Urgent message client disabled - we now only provide contact information
     
     // Initialize group client for activity groups
     setGroupClient(client);
