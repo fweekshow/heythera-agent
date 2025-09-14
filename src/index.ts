@@ -318,8 +318,13 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
                 style: "primary"
               },
               {
-                id: "set_reminder", 
-                label: "⏰ Set Reminder",
+                id: "wifi",
+                label: "📶 Wifi",
+                style: "secondary"
+              },
+              {
+                id: "shuttles",
+                label: "🚌 Shuttles",
                 style: "secondary"
               },
               {
@@ -461,9 +466,28 @@ Would you like me to add you to the ${displayName} @ Basecamp group chat?`,
           }
         }
         
-        // If no group join option, just send the AI response
+        // If no group join option, send the AI response with follow-up actions
         if (response) {
-          await conversation.send(response);
+          const followupActionsContent: ActionsContent = {
+            id: "question_response_followup",
+            description: `${response}
+
+Is there anything else I can help with?`,
+            actions: [
+              {
+                id: "show_main_menu",
+                label: "✅ Yes",
+                style: "primary"
+              },
+              {
+                id: "end_conversation",
+                label: "❌ No",
+                style: "secondary"
+              }
+            ]
+          };
+          
+          await (conversation as any).send(followupActionsContent, ContentTypeActions);
           addToConversationHistory(senderInboxId, cleanContent, response);
         }
         
@@ -559,10 +583,30 @@ Respond with only "YES" or "NO".`;
             await conversation.send("Hi! I'm the Basecamp Agent. I can help you with the Schedule, Set Reminders, or Concierge Support. What would you like to know?");
           }
         } else {
-          // Regular text response
-          console.log("💬 Sending regular text response");
-          await conversation.send(response);
-          console.log(`✅ Sent response: "${response}"`);
+          // Regular text response with follow-up actions
+          console.log("💬 Sending regular text response with follow-up actions");
+          
+          const followupActionsContent: ActionsContent = {
+            id: "response_followup_actions",
+            description: `${response}
+
+Is there anything else I can help with?`,
+            actions: [
+              {
+                id: "show_main_menu",
+                label: "✅ Yes",
+                style: "primary"
+              },
+              {
+                id: "end_conversation",
+                label: "❌ No",
+                style: "secondary"
+              }
+            ]
+          };
+          
+          await (conversation as any).send(followupActionsContent, ContentTypeActions);
+          console.log(`✅ Sent response with follow-up actions`);
           
           // Store this exchange in conversation history
           addToConversationHistory(senderInboxId, cleanContent, response);
@@ -609,6 +653,7 @@ async function main() {
     // Initialize group client for activity groups
     setGroupClient(client);
     
+    
     // Initialize agent in activity groups
     const { initializeAgentInGroups } = await import("./services/agent/tools/activityGroups.js");
     await initializeAgentInGroups();
@@ -617,6 +662,20 @@ async function main() {
     const reminderDispatcher = createReminderDispatcher();
     reminderDispatcher.start(client);
     console.log("🔄 Reminder dispatcher initialized");
+    
+    // Set up automatic broadcast reminders for all events
+    // COMMENTED OUT FOR LOCAL TESTING - autoReminders.js doesn't exist
+    // try {
+    //   const { setupAutomaticBroadcastReminders } = await import("./services/agent/tools/autoReminders.js");
+    //   
+    //   console.log("🎯 Setting up automatic event reminders...");
+    //   const results = setupAutomaticBroadcastReminders();
+    //   console.log(`✅ Set up ${results.filter((r: any) => r.includes('✅')).length} automatic broadcast reminders`);
+    //   
+    //   // All reminders (including the 9:25 PM test) are set up above
+    // } catch (error) {
+    //   console.error("❌ Error setting up automatic reminders:", error);
+    // }
     // Handle process termination
     const cleanup = () => {
       console.log("🛑 Shutting down agent...");
@@ -704,35 +763,97 @@ async function main() {
         case "schedule":
           // Use AI agent to provide schedule information
           try {
-            const scheduleResponse = ` 📅 Basecamp 2025 Schedule Helper
+            // First send the schedule information with the link
+            const scheduleResponse = `📅 Basecamp 2025 Schedule Helper
 
-Ask me any questions about the schedule! Here are some examples:
+You can view the full schedule in the Basecamp mini app basecamp25.app and sign up for sessions. Feel free to ask me any questions about the schedule and I'll help you craft an epic Basecamp experience.
 
-By Day:
-•⁠  ⁠What is the schedule on Monday?
-•⁠  ⁠What's happening on Sunday?
-•⁠  ⁠Show me Tuesday's events
-
-By Event:
-•⁠  ⁠What time does Jesse start speaking?
+Examples:
+•⁠  ⁠What's the schedule on Monday?
 •⁠  ⁠When is the Pickleball Tournament on Monday?
 •⁠  ⁠What time is the Welcome Reception?
-
-By Activity Type:
-•⁠  ⁠What are the night activities?
-•⁠  ⁠Show me the day activities
-•⁠  ⁠What workshops are available?
+•⁠  ⁠What are the day activities?
 
 Just ask naturally - I understand conversational requests!`;
+            
             await conversation.send(scheduleResponse);
+            
+            // Then send the follow-up actions in a separate message
+            const scheduleFollowupActionsContent: ActionsContent = {
+              id: "schedule_followup_actions",
+              description: "Is there anything else I can help with?",
+              actions: [
+                {
+                  id: "show_main_menu",
+                  label: "✅ Yes",
+                  style: "primary"
+                },
+                {
+                  id: "end_conversation",
+                  label: "❌ No",
+                  style: "secondary"
+                }
+              ]
+            };
+            await (conversation as any).send(scheduleFollowupActionsContent, ContentTypeActions);
             addToConversationHistory(message.senderInboxId, "schedule", "Schedule overview requested");
           } catch (error) {
             console.error("❌ Error getting schedule:", error);
             await conversation.send("I'm having trouble accessing the schedule right now. Please try again in a moment!");
           }
           break;
-        case "set_reminder":
-          await conversation.send("I can help you set reminders! Just tell me what you'd like to be reminded about and when. For example: 'Remind me about the Welcome Reception 30 minutes before it starts'");
+        case "wifi":
+          const wifiActionsContent: ActionsContent = {
+            id: "wifi_followup_actions",
+            description: `📶 Basecamp 2025 WiFi Information
+
+Network: Basecamp25
+Password: 0xBasecamp
+
+Connect using these credentials to access high-speed internet throughout the venue.
+
+Is there anything else I can help with?`,
+            actions: [
+              {
+                id: "show_main_menu",
+                label: "✅ Yes",
+                style: "primary"
+              },
+              {
+                id: "end_conversation",
+                label: "❌ No",
+                style: "secondary"
+              }
+            ]
+          };
+          await (conversation as any).send(wifiActionsContent, ContentTypeActions);
+          break;
+        case "shuttles":
+          // First send the shuttle information with the link
+          await conversation.send(`🚌 Shuttles
+
+View shuttle information in the Basecamp mini app basecamp25.app.
+
+Need help with shuttle schedules or pickup locations? Let me know!`);
+          
+          // Then send the follow-up actions in a separate message
+          const shuttlesFollowupActionsContent: ActionsContent = {
+            id: "shuttles_followup_actions",
+            description: "Is there anything else I can help with?",
+            actions: [
+              {
+                id: "show_main_menu",
+                label: "✅ Yes",
+                style: "primary"
+              },
+              {
+                id: "end_conversation",
+                label: "❌ No",
+                style: "secondary"
+              }
+            ]
+          };
+          await (conversation as any).send(shuttlesFollowupActionsContent, ContentTypeActions);
           break;
         case "concierge_support":
           const conciergeActionsContent: ActionsContent = {
@@ -765,41 +886,164 @@ Is this an urgent matter that needs immediate attention?`,
         case "urgent_yes":
           // Store that user is in urgent mode
           addToConversationHistory(message.senderInboxId, "urgent_yes", "User selected urgent support");
-          await conversation.send(`🚨 Urgent Support
+          await conversation.send(`Urgent Support
 
-I understand this is urgent! Please describe your concern and I'll forward it directly to the event organizers for immediate attention.
+I understand this is urgent! Here are the direct contact numbers for immediate assistance:
 
-What's the issue you're experiencing?`);
+HOTEL FRONT DESKS:
+• SPRUCE PEAK: +1 844-367-1672
+• TÄLTA Lodge: (802) 253-7525
+• AWOL: (802) 277-6200
+• Cady Hill Lodge: (802) 276-8200
+• Field Guide Lodge: (802) 253-8088
+• Outbound: (802) 253-7595
+
+TRANSPORTATION: +1 (805) 601-6178
+SECURITY (Spruce Peak): 802-461-6990
+
+Hope this helps!`);
+          
+          // Send follow-up actions in a separate message
+          const urgentYesFollowupActionsContent: ActionsContent = {
+            id: "urgent_yes_followup_actions",
+            description: "Is there anything else I can help with?",
+            actions: [
+              {
+                id: "show_main_menu",
+                label: "✅ Yes",
+                style: "primary"
+              },
+              {
+                id: "end_conversation",
+                label: "❌ No",
+                style: "secondary"
+              }
+            ]
+          };
+          await (conversation as any).send(urgentYesFollowupActionsContent, ContentTypeActions);
           break;
         case "urgent_no":
-          await conversation.send(`📧 Non-Urgent Support
+          await conversation.send(`Non-Urgent Support
 
 For non-urgent matters, please send a message to:
 concierge@base.org
 
-This is the best way to reach our support team for general questions, requests, or non-urgent concerns.
-
-Is there anything else I can help you with regarding Basecamp 2025?`);
+This is the best way to reach our support team for general questions, requests, or non-urgent concerns.`);
+          
+          // Send follow-up actions in a separate message
+          const urgentNoFollowupActionsContent: ActionsContent = {
+            id: "urgent_no_followup_actions",
+            description: "Is there anything else I can help with?",
+            actions: [
+              {
+                id: "show_main_menu",
+                label: "✅ Yes",
+                style: "primary"
+              },
+              {
+                id: "end_conversation",
+                label: "❌ No",
+                style: "secondary"
+              }
+            ]
+          };
+          await (conversation as any).send(urgentNoFollowupActionsContent, ContentTypeActions);
           break;
         case "join_yoga":
           const { addMemberToActivityGroup } = await import("./services/agent/tools/activityGroups.js");
           const yogaResult = await addMemberToActivityGroup("yoga", message.senderInboxId);
-          await conversation.send(yogaResult);
+          
+          const yogaFollowupActionsContent: ActionsContent = {
+            id: "yoga_join_followup",
+            description: `${yogaResult}
+
+Is there anything else I can help with?`,
+            actions: [
+              {
+                id: "show_main_menu",
+                label: "✅ Yes",
+                style: "primary"
+              },
+              {
+                id: "end_conversation",
+                label: "❌ No",
+                style: "secondary"
+              }
+            ]
+          };
+          await (conversation as any).send(yogaFollowupActionsContent, ContentTypeActions);
           break;
         case "join_running":
           const { addMemberToActivityGroup: addRunning } = await import("./services/agent/tools/activityGroups.js");
           const runningResult = await addRunning("running", message.senderInboxId);
-          await conversation.send(runningResult);
+          
+          const runningFollowupActionsContent: ActionsContent = {
+            id: "running_join_followup",
+            description: `${runningResult}
+
+Is there anything else I can help with?`,
+            actions: [
+              {
+                id: "show_main_menu",
+                label: "✅ Yes",
+                style: "primary"
+              },
+              {
+                id: "end_conversation",
+                label: "❌ No",
+                style: "secondary"
+              }
+            ]
+          };
+          await (conversation as any).send(runningFollowupActionsContent, ContentTypeActions);
           break;
         case "join_pickleball":
           const { addMemberToActivityGroup: addPickleball } = await import("./services/agent/tools/activityGroups.js");
           const pickleballResult = await addPickleball("pickleball", message.senderInboxId);
-          await conversation.send(pickleballResult);
+          
+          const pickleballFollowupActionsContent: ActionsContent = {
+            id: "pickleball_join_followup",
+            description: `${pickleballResult}
+
+Is there anything else I can help with?`,
+            actions: [
+              {
+                id: "show_main_menu",
+                label: "✅ Yes",
+                style: "primary"
+              },
+              {
+                id: "end_conversation",
+                label: "❌ No",
+                style: "secondary"
+              }
+            ]
+          };
+          await (conversation as any).send(pickleballFollowupActionsContent, ContentTypeActions);
           break;
         case "join_hiking":
           const { addMemberToActivityGroup: addHiking } = await import("./services/agent/tools/activityGroups.js");
           const hikingResult = await addHiking("hiking", message.senderInboxId);
-          await conversation.send(hikingResult);
+          
+          const hikingFollowupActionsContent: ActionsContent = {
+            id: "hiking_join_followup",
+            description: `${hikingResult}
+
+Is there anything else I can help with?`,
+            actions: [
+              {
+                id: "show_main_menu",
+                label: "✅ Yes",
+                style: "primary"
+              },
+              {
+                id: "end_conversation",
+                label: "❌ No",
+                style: "secondary"
+              }
+            ]
+          };
+          await (conversation as any).send(hikingFollowupActionsContent, ContentTypeActions);
           break;
         case "join_builder":
           const { addMemberToActivityGroup: addBuilder } = await import("./services/agent/tools/activityGroups.js");
@@ -877,7 +1121,25 @@ Is there anything else I can help you with regarding Basecamp 2025?`);
           await conversation.send(studentsResult);
           break;
         case "no_group_join":
-          await conversation.send("👍 No problem! Feel free to ask me about other activities or anything else regarding Basecamp 2025.");
+          const noGroupJoinActionsContent: ActionsContent = {
+            id: "no_group_join_followup",
+            description: `👍 No problem! Feel free to ask me about other activities or anything else regarding Basecamp 2025.
+
+Is there anything else I can help with?`,
+            actions: [
+              {
+                id: "show_main_menu",
+                label: "✅ Yes",
+                style: "primary"
+              },
+              {
+                id: "end_conversation",
+                label: "❌ No",
+                style: "secondary"
+              }
+            ]
+          };
+          await (conversation as any).send(noGroupJoinActionsContent, ContentTypeActions);
           break;
         case "broadcast_yes":
           try {
@@ -900,6 +1162,44 @@ Is there anything else I can help you with regarding Basecamp 2025?`);
             await conversation.send(`❌ Cancel failed: ${cancelError.message}`);
             console.error("❌ Cancel error:", cancelError);
           }
+          break;
+        case "show_main_menu":
+          // Send the main quick actions menu again
+          const mainMenuActionsContent: ActionsContent = {
+            id: "basecamp_welcome_actions",
+            description: "Hi! I'm the Basecamp Agent. Here are things I can help you with:",
+            actions: [
+              {
+                id: "schedule",
+                label: "📅 Schedule",
+                style: "primary"
+              },
+              {
+                id: "wifi",
+                label: "📶 Wifi",
+                style: "secondary"
+              },
+              {
+                id: "shuttles",
+                label: "🚌 Shuttles",
+                style: "secondary"
+              },
+              {
+                id: "concierge_support",
+                label: "🎫 Concierge Support",
+                style: "secondary"
+              },
+              {
+                id: "join_groups",
+                label: "👥 Join Groups",
+                style: "secondary"
+              }
+            ]
+          };
+          await (conversation as any).send(mainMenuActionsContent, ContentTypeActions);
+          break;
+        case "end_conversation":
+          await conversation.send("Great! Message me 👋 if you want to view the option menu again!");
           break;
         default:
           await conversation.send("Thanks for your selection! How can I help you with Basecamp 2025?");

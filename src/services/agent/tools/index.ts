@@ -1,17 +1,12 @@
-// Removed broadcast tool - using simple function instead
+// Individual reminders removed - only organizer broadcast reminders are used
 import { fetchBasecampInfo } from "./logistics.js";
-import { 
-  setReminder, 
-  fetchAllPendingReminders, 
-  cancelPendingReminder,
-  cancelAllReminders,
-  fetchCurrentDateTime 
-} from "./reminder.js";
 import { 
   getFullSchedule,
   getSpeakerInfo
 } from "./schedule.js";
 import { sendWelcomeMessage, showHelp } from "./welcome.js";
+// COMMENTED OUT FOR LOCAL TESTING - UNCOMMENT FOR RAILWAY DEPLOYMENT
+// import { setupAutomaticBroadcastReminders } from "./autoReminders.js";
 
 export const DEFAULT_TOOLS = [
   // Welcome and help tools
@@ -21,17 +16,10 @@ export const DEFAULT_TOOLS = [
   // Schedule tools  
   getFullSchedule,
   getSpeakerInfo,
-
   
   // Basecamp info
   fetchBasecampInfo,
   
-  // Reminder tools
-  fetchCurrentDateTime,
-  setReminder,
-  fetchAllPendingReminders,
-  cancelPendingReminder,
-  cancelAllReminders,
-  
+  // Individual reminder tools removed - only organizer broadcast reminders are used
   // Broadcast tools removed - using direct function call
 ];

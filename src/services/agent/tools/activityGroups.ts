@@ -17,9 +17,19 @@ export async function initializeAgentInGroups(): Promise<void> {
   console.log("🔄 Initializing agent in activity groups...");
   
   // First, let's see what conversations the agent actually has access to
+  console.log("🔄 Syncing conversations (aggressive)...");
   await groupClient.conversations.sync();
+  
+  // Wait and sync again to ensure all installations are synced
+  console.log("🔄 Waiting for installation sync...");
+  await new Promise(resolve => setTimeout(resolve, 3000));
+  await groupClient.conversations.sync();
+  
+  console.log("🔄 Getting conversation list...");
   const allConversations = await groupClient.conversations.list();
   console.log(`🔍 Agent has access to ${allConversations.length} total conversations:`);
+  console.log(`🔍 Raw conversations:`, allConversations.map(c => ({ id: c.id, type: c.constructor.name })));
+  console.log(`🔍 Agent address: ${groupClient.accountIdentifier}`);
   
   for (const conv of allConversations) {
     const type = conv.constructor.name;
