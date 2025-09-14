@@ -11,7 +11,7 @@ import {
   getEncryptionKeyFromHex,
   logAgentDetails,
 } from "./services/helpers/client.js";
-import { initDb } from "./store.js";
+import { initDb, isUserVerified, verifyUser, updateUserActivity } from "./store.js";
 import {
   DEBUG_LOGS,
   DB_ENCRYPTION_KEY,
@@ -19,6 +19,7 @@ import {
   SHOW_SENDER_ADDRESS,
   WALLET_KEY,
   XMTP_ENV,
+  AGENT_PASSCODE,
 } from "./config.js";
 import { ActionsCodec, type ActionsContent, ContentTypeActions } from "./xmtp-inline-actions/types/ActionsContent.js";
 import { IntentCodec, ContentTypeIntent } from "./xmtp-inline-actions/types/IntentContent.js";
@@ -130,6 +131,68 @@ async function handleMessage(message: DecodedMessage, client: Client) {
       }
       return;
     }
+
+    // PASSCODE VERIFICATION - Check before any other processing
+    if (!isUserVerified(senderInboxId)) {
+      console.log(`🔐 Unverified user ${senderInboxId}, checking for passcode...`);
+      
+      // Check if message contains the passcode
+      if (messageContent.trim() === AGENT_PASSCODE) {
+        console.log(`✅ Correct passcode entered by ${senderInboxId}`);
+        verifyUser(senderInboxId);
+        
+        // Get conversation to respond
+        const conversation = await client.conversations.getConversationById(conversationId);
+        if (conversation) {
+          // Send single combined welcome message with quick actions
+          const welcomeActionsContent: ActionsContent = {
+            id: "basecamp_welcome_actions",
+            description: "Welcome to Basecamp 2025! I'm Rocky the Basecamp Concierge Agent. Here are things I can help you with:",
+            actions: [
+              {
+                id: "schedule",
+                label: "📅 Schedule",
+                style: "primary"
+              },
+              {
+                id: "wifi",
+                label: "📶 Wifi",
+                style: "secondary"
+              },
+              {
+                id: "shuttles",
+                label: "🚌 Shuttles",
+                style: "secondary"
+              },
+              {
+                id: "concierge_support",
+                label: "🎫 Concierge Support",
+                style: "secondary"
+              },
+              {
+                id: "join_groups",
+                label: "👥 Join Groups",
+                style: "secondary"
+              }
+            ]
+          };
+          await (conversation as any).send(welcomeActionsContent, ContentTypeActions);
+        }
+        return;
+      } else {
+        console.log(`❌ Incorrect passcode attempt by ${senderInboxId}: "${messageContent}"`);
+        
+        // Get conversation to respond
+        const conversation = await client.conversations.getConversationById(conversationId);
+        if (conversation) {
+          await conversation.send("🔐 Please enter the access code and Rocky will let you in");
+        }
+        return; // Stop processing until correct passcode is entered
+      }
+    }
+
+    // Update user activity for verified users
+    updateUserActivity(senderInboxId);
 
     // Get conversation to check if it's a group
     const conversation = await client.conversations.getConversationById(conversationId);
@@ -310,7 +373,7 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
           // Create Quick Actions for welcome message using proper ActionsContent type
           const quickActionsContent: ActionsContent = {
             id: "basecamp_welcome_actions",
-            description: "Hi! I'm the Basecamp Agent. Here are things I can help you with:",
+            description: "Hi! I'm Rocky the Basecamp Agent. Here are things I can help you with:",
             actions: [
               {
                 id: "schedule",
@@ -354,7 +417,7 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
         } catch (quickActionsError) {
           console.error("❌ Error sending Quick Actions:", quickActionsError);
           // Fallback to regular text
-          await conversation.send("Hi! I'm the Basecamp Agent. I can help you with the Schedule, Set Reminders, or Concierge Support. What would you like to know?");
+          await conversation.send("Hi! I'm Rocky the Basecamp Agent. I can help you with the Schedule, Set Reminders, or Concierge Support. What would you like to know?");
           addToConversationHistory(senderInboxId, cleanContent, "Welcome message sent (fallback)");
           return;
         }
@@ -563,7 +626,7 @@ Respond with only "YES" or "NO".`;
             console.error("❌ Error sending Quick Actions:", quickActionsError);
             console.log("🔄 Falling back to regular text response");
             // Fallback to regular text
-            await conversation.send("Hi! I'm the Basecamp Agent. I can help you with the Schedule, Set Reminders, or Concierge Support. What would you like to know?");
+            await conversation.send("Hi! I'm Rocky the Basecamp Agent. I can help you with the Schedule, Set Reminders, or Concierge Support. What would you like to know?");
           }
         } else {
           // Regular text response with follow-up actions
@@ -762,7 +825,7 @@ async function main() {
           // Use AI agent to provide schedule information
           try {
             // First send the schedule information with the link
-            const scheduleResponse = `📅 Basecamp 2025 Schedule Helper
+            const scheduleResponse = `
 
 You can view the full schedule in the Basecamp mini app basecamp25.app and sign up for sessions. Feel free to ask me any questions about the schedule and I'll help you craft an epic Basecamp experience.
 
@@ -1165,7 +1228,7 @@ Is there anything else I can help with?`,
           // Send the main quick actions menu again
           const mainMenuActionsContent: ActionsContent = {
             id: "basecamp_welcome_actions",
-            description: "Hi! I'm the Basecamp Agent. Here are things I can help you with:",
+            description: "Hi! I'm Rocky the Basecamp Agent. Here are things I can help you with:",
             actions: [
               {
                 id: "schedule",

@@ -172,6 +172,14 @@ export async function addMemberToActivityGroup(
     } catch (addError: any) {
       if (addError.message?.includes('already') || addError.message?.includes('duplicate')) {
         console.log(`ℹ️ User was already in ${activityName} group`);
+      } else if (addError.message?.includes('Failed to verify all installations') || addError.code === 'GenericFailure') {
+        console.log(`⚠️ Installation verification failed for ${activityName} group - this is a temporary XMTP network issue (user will receive friendly error message)`);
+        // Return a user-friendly message for installation verification failures
+        return `⚠️ There's a temporary network issue preventing group access right now. 
+
+Please try joining the ${activityName} group again in a few minutes, or contact support if the issue persists.
+
+The group chat is available and you can try again later!`;
       } else {
         throw addError; // Re-throw if it's a different error
       }

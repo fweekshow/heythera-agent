@@ -7,7 +7,7 @@ export const sendWelcomeMessage = tool(
       contentType: "coinbase.com/actions:1.0",
       content: {
         id: "basecamp_welcome_actions",
-        description: "Hi! I'm the Basecamp Agent. Here are things I can help you with:",
+        description: "Hi! I'm Rocky the Basecamp Agent. Here are things I can help you with:",
         actions: [
           {
             id: "schedule",

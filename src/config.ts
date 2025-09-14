@@ -19,4 +19,7 @@ export const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
 // Coinbase OnchainKit API Configuration
 export const PUBLIC_ONCHAINKIT_API_KEY = process.env.PUBLIC_ONCHAINKIT_API_KEY;
 
+// Agent Access Control
+export const AGENT_PASSCODE = process.env.AGENT_PASSCODE || "7047";
+
 

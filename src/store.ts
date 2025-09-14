@@ -18,6 +18,7 @@ export function openRemindersDb(dbPath: string): void {
   db = Database(dbPath);
   db.pragma("journal_mode = WAL");
 
+  // Create reminders table
   db.exec(`
     CREATE TABLE IF NOT EXISTS reminders (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,6 +28,17 @@ export function openRemindersDb(dbPath: string): void {
       message TEXT NOT NULL,
       sent INTEGER DEFAULT 0,
       createdAt TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // Create passcode verification table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS verified_users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      inboxId TEXT UNIQUE NOT NULL,
+      walletAddress TEXT,
+      verifiedAt TEXT DEFAULT CURRENT_TIMESTAMP,
+      lastActiveAt TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
@@ -127,10 +139,59 @@ export function getDueReminders(): Reminder[] {
   return stmt.all(now.toISO()) as Reminder[];
 }
 
-// Initialize database
+// Initialize database with volume support
 export function initDb(): void {
-  const dbPath = "reminders.db3";
+  // Use Railway volume path in production, local path in development
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT;
+  const dbPath = isProduction 
+    ? "/app/data/reminders.db3" 
+    : "reminders.db3";
+  console.log(`📋 Reminders database path: ${dbPath}`);
   openRemindersDb(dbPath);
+}
+
+// Passcode verification functions
+export function isUserVerified(inboxId: string): boolean {
+  if (!db) throw new Error("Database not initialized");
+
+  const stmt = db.prepare(`
+    SELECT id FROM verified_users WHERE inboxId = ?
+  `);
+
+  const result = stmt.get(inboxId);
+  return !!result;
+}
+
+export function verifyUser(inboxId: string, walletAddress?: string): void {
+  if (!db) throw new Error("Database not initialized");
+
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO verified_users (inboxId, walletAddress, verifiedAt, lastActiveAt)
+    VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  `);
+
+  stmt.run(inboxId, walletAddress || null);
+}
+
+export function updateUserActivity(inboxId: string): void {
+  if (!db) throw new Error("Database not initialized");
+
+  const stmt = db.prepare(`
+    UPDATE verified_users SET lastActiveAt = CURRENT_TIMESTAMP WHERE inboxId = ?
+  `);
+
+  stmt.run(inboxId);
+}
+
+export function getVerifiedUsersCount(): number {
+  if (!db) throw new Error("Database not initialized");
+
+  const stmt = db.prepare(`
+    SELECT COUNT(*) as count FROM verified_users
+  `);
+
+  const result = stmt.get() as { count: number };
+  return result.count;
 }
 
 export function closeDb(): void {
