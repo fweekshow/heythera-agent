@@ -11,7 +11,7 @@ import {
   getEncryptionKeyFromHex,
   logAgentDetails,
 } from "./services/helpers/client.js";
-import { initDb, isUserVerified, verifyUser, updateUserActivity } from "./store.js";
+import { initDb } from "./store.js";
 import {
   DEBUG_LOGS,
   DB_ENCRYPTION_KEY,
@@ -19,7 +19,6 @@ import {
   SHOW_SENDER_ADDRESS,
   WALLET_KEY,
   XMTP_ENV,
-  AGENT_PASSCODE,
 } from "./config.js";
 import { ActionsCodec, type ActionsContent, ContentTypeActions } from "./xmtp-inline-actions/types/ActionsContent.js";
 import { IntentCodec, ContentTypeIntent } from "./xmtp-inline-actions/types/IntentContent.js";
@@ -132,70 +131,9 @@ async function handleMessage(message: DecodedMessage, client: Client) {
       return;
     }
 
-    // PASSCODE VERIFICATION - Check before any other processing
-    if (!isUserVerified(senderInboxId)) {
-      console.log(`🔐 Unverified user ${senderInboxId}, checking for passcode...`);
-      
-      // Check if message contains the passcode
-      if (messageContent.trim() === AGENT_PASSCODE) {
-        console.log(`✅ Correct passcode entered by ${senderInboxId}`);
-        verifyUser(senderInboxId);
-        
-        // Get conversation to respond
-        const conversation = await client.conversations.getConversationById(conversationId);
-        if (conversation) {
-          // Send single combined welcome message with quick actions
-          const welcomeActionsContent: ActionsContent = {
-            id: "basecamp_welcome_actions",
-            description: "Welcome to Basecamp 2025! I'm Rocky the Basecamp Concierge Agent. Here are things I can help you with:",
-            actions: [
-              {
-                id: "schedule",
-                label: "📅 Schedule",
-                style: "primary"
-              },
-              {
-                id: "wifi",
-                label: "📶 Wifi",
-                style: "secondary"
-              },
-              {
-                id: "shuttles",
-                label: "🚌 Shuttles",
-                style: "secondary"
-              },
-              {
-                id: "concierge_support",
-                label: "🎫 Concierge Support",
-                style: "secondary"
-              },
-              {
-                id: "join_groups",
-                label: "👥 Join Groups",
-                style: "secondary"
-              }
-            ]
-          };
-          await (conversation as any).send(welcomeActionsContent, ContentTypeActions);
-        }
-        return;
-      } else {
-        console.log(`❌ Incorrect passcode attempt by ${senderInboxId}: "${messageContent}"`);
-        
-        // Get conversation to respond
-        const conversation = await client.conversations.getConversationById(conversationId);
-        if (conversation) {
-          await conversation.send("🔐 Please enter the access code and Rocky will let you in");
-        }
-        return; // Stop processing until correct passcode is entered
-      }
-    }
-
-    // Update user activity for verified users
-    updateUserActivity(senderInboxId);
-
     // Get conversation to check if it's a group
     const conversation = await client.conversations.getConversationById(conversationId);
+
     if (!conversation) {
       console.error("❌ Could not find conversation");
       return;
@@ -255,12 +193,48 @@ async function handleMessage(message: DecodedMessage, client: Client) {
           await (conversation as any).send(actionsData.content, ContentTypeActions);
           console.log(`✅ Sent broadcast preview with quick actions`);
         } catch (broadcastError: any) {
-          await conversation.send(`❌ Broadcast preview failed: ${broadcastError.message}`);
+          await (conversation as any).send(`❌ Broadcast preview failed: ${broadcastError.message}`);
           console.error("❌ Broadcast error:", broadcastError);
         }
         return;
       }
       
+      // Check for admin command: @rocky addToGroup <address1> <address2> ...
+      if (cleanContent.toLowerCase().startsWith("addtogroup")) {
+        
+        // Only allow this command in group chats
+        if (!isGroup) {
+          await conversation.send("❌ The addToGroup command can only be used in group chats.");
+          return;
+        }
+        
+        try {
+          // Parse the command: @rocky addToGroup <address1> <address2> ...
+          const parts = cleanContent.split(' ').filter(part => part.trim() !== '');
+          
+          if (parts.length < 2) {
+            await conversation.send("❌ Usage: @rocky addToGroup <address1> <address2> ...\n\nExample: @rocky addToGroup 0x123... 0x456...\n\nI'll add them to this group!");
+            return;
+          }
+          
+          // Use the current group's ID
+          const groupId = conversationId;
+          const addresses = parts.slice(1);
+          
+          // Import and use the admin function
+          const { addMembersToGroup } = await import("./services/agent/tools/admin.js");
+          const result = await addMembersToGroup(groupId, addresses, senderInboxId, client);
+          
+          await conversation.send(result);
+          console.log(`✅ Admin command result: ${result}`);
+          
+        } catch (error: any) {
+          console.error("❌ Error processing admin command:", error);
+          await conversation.send(`❌ Error processing admin command: ${error.message}`);
+        }
+        
+        return;
+      }
       
       // Check for DM me command to establish DM connection
       if (cleanContent.toLowerCase().includes("dm me") || cleanContent.toLowerCase().includes("start dm")) {

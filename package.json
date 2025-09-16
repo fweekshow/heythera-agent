@@ -26,6 +26,7 @@
     "@coinbase/onchainkit": "^0.38.19",
     "@langchain/core": "^0.3.72",
     "@langchain/openai": "^0.6.9",
+    "@neynar/nodejs-sdk": "^3.34.0",
     "@nomicfoundation/hardhat-toolbox": "^6.1.0",
     "@openzeppelin/contracts": "^5.4.0",
     "@xmtp/content-type-primitives": "^2.0.2",

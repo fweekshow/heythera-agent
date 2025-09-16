@@ -31,7 +31,7 @@ export function openRemindersDb(dbPath: string): void {
     )
   `);
 
-  // Create passcode verification table
+  // User verification table (no longer used for passcode)
   db.exec(`
     CREATE TABLE IF NOT EXISTS verified_users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -150,7 +150,7 @@ export function initDb(): void {
   openRemindersDb(dbPath);
 }
 
-// Passcode verification functions
+// User verification functions (no longer used for passcode)
 export function isUserVerified(inboxId: string): boolean {
   if (!db) throw new Error("Database not initialized");
 

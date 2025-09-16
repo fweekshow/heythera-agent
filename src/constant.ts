@@ -48,6 +48,7 @@ export const STAFF_WALLETS = [
   "0xf732FcD2C9C1Ca16F68a914401614869d39cA9d1".toLowerCase(), // Alex Chen
   "0x605807906157A721669bAC96B64851CBdF64804B".toLowerCase(), // Ryan M
   "0xBC3F713b37810538C191bA5dDf32D971EE643dDA".toLowerCase(), // Sarah W
+  "0x61bf19B5D245aBCdca67E868A706FA404e42a578".toLowerCase(), // testagent wallet
 ];
 
 // Group-related keywords for activity detection and group joining

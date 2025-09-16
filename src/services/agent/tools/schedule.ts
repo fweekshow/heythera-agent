@@ -1,6 +1,6 @@
 import { tool } from "@langchain/core/tools";
 import { DateTime } from "luxon";
-import { EVENT_TZ } from "@/constant.js";
+import { EVENT_TZ, eventDate } from "../../../constant.js";
 import { z } from "zod";
 
 export const SPEAKERS_DATA = {
@@ -205,8 +205,21 @@ export const getFullSchedule = tool(
       }
     }
     
-    // Default: return full schedule data
-    return JSON.stringify(SCHEDULE_DATA);
+    // If no day specified, determine current day based on actual event dates
+    const now = eventDate();
+    const dayOfMonth = now.day;
+    
+    // Map actual Basecamp event dates (September 14-17, 2025)
+    let currentDay = 'monday'; // fallback
+    if (dayOfMonth === 14) currentDay = 'sunday';
+    else if (dayOfMonth === 15) currentDay = 'monday';
+    else if (dayOfMonth === 16) currentDay = 'tuesday';
+    else if (dayOfMonth === 17) currentDay = 'wednesday';
+    
+    console.log(`🔍 Current date: ${now.toFormat('yyyy-MM-dd HH:mm')} ET (day ${dayOfMonth}), determined day: ${currentDay}`);
+    
+    // Return current day's schedule
+    return JSON.stringify(SCHEDULE_DATA[currentDay as keyof typeof SCHEDULE_DATA]);
   },
   {
     name: "GetFullSchedule",
@@ -321,7 +334,23 @@ export const getDayActivities = tool(
 export const getActivityTime = tool(
   async ({ activity, day }: { activity: string; day?: string }) => {
     console.log("🔄 Getting activity time...", activity, day);
-    const searchDay = day?.toLowerCase() || 'monday';
+    
+    // If no day specified, determine current day based on actual event dates
+    let searchDay = day?.toLowerCase();
+    if (!searchDay) {
+      const now = eventDate();
+      const dayOfMonth = now.day;
+      
+      // Map actual Basecamp event dates (September 14-17, 2025)
+      if (dayOfMonth === 14) searchDay = 'sunday';
+      else if (dayOfMonth === 15) searchDay = 'monday';
+      else if (dayOfMonth === 16) searchDay = 'tuesday';
+      else if (dayOfMonth === 17) searchDay = 'wednesday';
+      else searchDay = 'monday'; // fallback
+      
+      console.log(`🔍 Current date: ${now.toFormat('yyyy-MM-dd HH:mm')} ET (day ${dayOfMonth}), determined day: ${searchDay}`);
+    }
+    
     const scheduleData = SCHEDULE_DATA[searchDay as keyof typeof SCHEDULE_DATA] as any;
     
     if (!scheduleData) {

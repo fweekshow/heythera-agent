@@ -170,6 +170,8 @@ export async function addMemberToActivityGroup(
       await (group as any).addMembers([userInboxId]);
       console.log(`✅ Successfully added user to ${activityName} group`);
     } catch (addError: any) {
+      console.log(`❌ Error for ${activityName}: ${addError.message}`);
+      
       if (addError.message?.includes('already') || addError.message?.includes('duplicate')) {
         console.log(`ℹ️ User was already in ${activityName} group`);
       } else if (addError.message?.includes('Failed to verify all installations') || addError.code === 'GenericFailure') {
@@ -181,7 +183,8 @@ Please try joining the ${activityName} group again in a few minutes, or contact 
 
 The group chat is available and you can try again later!`;
       } else {
-        throw addError; // Re-throw if it's a different error
+        console.log(`❌ Unknown error for ${activityName} group:`, addError);
+        return `❌ Failed to add you to the ${activityName} group. Error: ${addError.message || 'Unknown error'}. Please contact support.`;
       }
     }
     
