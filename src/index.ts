@@ -173,7 +173,7 @@ async function handleMessage(message: DecodedMessage, client: Client) {
     try {
       console.log(`🤖 Processing message: "${cleanContent}"`);
       
-      // Check for broadcast command and handle with preview
+      // Check for broadcast commands and handle with preview
       if (!isGroup && cleanContent.toLowerCase().startsWith("/broadcast ")) {
         const broadcastMessage = cleanContent.substring(11).trim(); // Remove "/broadcast " prefix
         
@@ -196,6 +196,74 @@ async function handleMessage(message: DecodedMessage, client: Client) {
           await (conversation as any).send(`❌ Broadcast preview failed: ${broadcastError.message}`);
           console.error("❌ Broadcast error:", broadcastError);
         }
+        return;
+      }
+      
+      // Check for broadcastactions command (Method 1)
+      if (!isGroup && cleanContent.toLowerCase().startsWith("/broadcastactions ")) {
+        const broadcastMessage = cleanContent.substring(18).trim(); // Remove "/broadcastactions " prefix
+        
+        try {
+          const { previewBroadcastActions, confirmBroadcastActions } = await import("./services/agent/tools/broadcast.js");
+          
+          const result = await previewBroadcastActions(
+            broadcastMessage,
+            senderInboxId,
+            conversationId
+          );
+          
+          const actionsData = JSON.parse(result);
+          await (conversation as any).send(actionsData.content, ContentTypeActions);
+          console.log(`✅ Sent broadcast actions preview with quick actions`);
+        } catch (broadcastError: any) {
+          await (conversation as any).send(`❌ Broadcast actions preview failed: ${broadcastError.message}`);
+          console.error("❌ Broadcast actions error:", broadcastError);
+        }
+        return;
+      }
+      
+      // Check for broadcastjoin command (Method 2)
+      if (!isGroup && cleanContent.toLowerCase().startsWith("/broadcastjoin ")) {
+        const broadcastMessage = cleanContent.substring(15).trim(); // Remove "/broadcastjoin " prefix
+        
+        try {
+          const { previewBroadcastJoin, confirmBroadcastJoin } = await import("./services/agent/tools/broadcast.js");
+          
+          const result = await previewBroadcastJoin(
+            broadcastMessage,
+            senderInboxId,
+            conversationId
+          );
+          
+          const actionsData = JSON.parse(result);
+          await (conversation as any).send(actionsData.content, ContentTypeActions);
+          console.log(`✅ Sent broadcast join preview with quick actions`);
+        } catch (broadcastError: any) {
+          await (conversation as any).send(`❌ Broadcast join preview failed: ${broadcastError.message}`);
+          console.error("❌ Broadcast join error:", broadcastError);
+        }
+        return;
+      }
+      
+      // Check for "Join Base @ DevConnect" text message (Method 2 response)
+      if (cleanContent.toLowerCase().trim() === "join base @ devconnect" || cleanContent.toLowerCase().trim() === "join base @devconnect") {
+        const joinEventsActionsContent: ActionsContent = {
+          id: "join_events_text_confirmation",
+          description: "Join Base @ DevConnect\n\nWould you like to join the Base @ DevConnect group? This will give you access to exclusive updates and community discussions about DevConnect.",
+          actions: [
+            {
+              id: "confirm_join_events",
+              label: "✅ Yes, Join Group",
+              style: "primary"
+            },
+            {
+              id: "decline_join_events",
+              label: "❌ No, Thanks",
+              style: "secondary"
+            }
+          ]
+        };
+        await (conversation as any).send(joinEventsActionsContent, ContentTypeActions);
         return;
       }
       
@@ -1198,6 +1266,66 @@ Is there anything else I can help with?`,
             console.error("❌ Cancel error:", cancelError);
           }
           break;
+        case "broadcast_actions_yes":
+          try {
+            const { confirmBroadcastActions } = await import("./services/agent/tools/broadcast.js");
+            const result = await confirmBroadcastActions(message.senderInboxId, message.conversationId);
+            await conversation.send(result);
+            console.log(`✅ Broadcast actions confirmation result: "${result}"`);
+          } catch (confirmError: any) {
+            await conversation.send(`❌ Broadcast actions confirmation failed: ${confirmError.message}`);
+            console.error("❌ Broadcast actions confirmation error:", confirmError);
+          }
+          break;
+        case "broadcast_actions_no":
+          try {
+            const { cancelBroadcast } = await import("./services/agent/tools/broadcast.js");
+            const result = await cancelBroadcast(message.senderInboxId);
+            await conversation.send(result);
+            console.log(`✅ Broadcast actions cancelled: "${result}"`);
+          } catch (cancelError: any) {
+            await conversation.send(`❌ Cancel failed: ${cancelError.message}`);
+            console.error("❌ Cancel error:", cancelError);
+          }
+          break;
+        case "broadcast_join_yes":
+          try {
+            const { confirmBroadcastJoin } = await import("./services/agent/tools/broadcast.js");
+            const result = await confirmBroadcastJoin(message.senderInboxId, message.conversationId);
+            await conversation.send(result);
+            console.log(`✅ Broadcast join confirmation result: "${result}"`);
+          } catch (confirmError: any) {
+            await conversation.send(`❌ Broadcast join confirmation failed: ${confirmError.message}`);
+            console.error("❌ Broadcast join confirmation error:", confirmError);
+          }
+          break;
+        case "broadcast_join_no":
+          try {
+            const { cancelBroadcast } = await import("./services/agent/tools/broadcast.js");
+            const result = await cancelBroadcast(message.senderInboxId);
+            await conversation.send(result);
+            console.log(`✅ Broadcast join cancelled: "${result}"`);
+          } catch (cancelError: any) {
+            await conversation.send(`❌ Cancel failed: ${cancelError.message}`);
+            console.error("❌ Cancel error:", cancelError);
+          }
+          break;
+        case "confirm_join_events":
+          // Handle confirmation to join events
+          try {
+            const { addMemberToBaseGlobalEvents } = await import("./services/agent/tools/activityGroups.js");
+            const joinResult = await addMemberToBaseGlobalEvents(message.senderInboxId);
+            await conversation.send(joinResult);
+            console.log(`✅ Base Global Events join result: "${joinResult}"`);
+          } catch (joinError: any) {
+            await conversation.send(`❌ Failed to join Base Global Events: ${joinError.message}`);
+            console.error("❌ Join events error:", joinError);
+          }
+          break;
+        case "decline_join_events":
+          // Handle decline to join events
+          await conversation.send("👍 No problem! Feel free to ask me about the schedule, event information, or anything else regarding Basecamp 2025.");
+          break;
         case "show_main_menu":
           // Send the main quick actions menu again
           const mainMenuActionsContent: ActionsContent = {
@@ -1237,7 +1365,7 @@ Is there anything else I can help with?`,
           await conversation.send("Great! Message me 👋 if you want to view the option menu again!");
           break;
         default:
-          await conversation.send("Thanks for your selection! How can I help you with Basecamp 2025?");
+          await conversation.send("Thanks for your selection!");
       }
       continue;
     }

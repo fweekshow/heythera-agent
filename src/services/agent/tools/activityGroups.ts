@@ -97,7 +97,10 @@ const ACTIVITY_GROUPS = {
   defi: "d85ddfb052ddf73bb1db3aa6fc09d723",
   network: "2ec1efe21fcb0f15944091eb27dc39f8",
   coining: "a265fcb5fb55b9088f28e0e068bccbb2",
-  students: "f9bc3c3369da4f9847ea65f2b02a3ef2"
+  students: "f9bc3c3369da4f9847ea65f2b02a3ef2",
+  
+  // Base @ DevConnect Group - placeholder ID, will be resolved by name
+  "base_global_events": "BASE_DEVCONNECT_PLACEHOLDER"
 };
 
 // Activity group names for display
@@ -123,7 +126,10 @@ const ACTIVITY_NAMES = {
   defi: "🪙 DeFi Deals Session @ Basecamp",
   network: "🌐 Network State Session @ Basecamp",
   coining: "🪙 Coining Session @ Basecamp",
-  students: "🎓 Students @ Basecamp"
+  students: "🎓 Students @ Basecamp",
+  
+  // Base @ DevConnect Group
+  "base_global_events": "🌍 Base @ DevConnect"
 };
 
 // Function to add a user to an activity group
@@ -197,6 +203,72 @@ Check your group chats to see the conversation.`;
   } catch (error: any) {
     console.error(`❌ Error adding member to ${activity} group:`, error);
     return `❌ Failed to add you to the ${ACTIVITY_NAMES[activity]} group. Please contact support or try again later.`;
+  }
+}
+
+// Special function to add user to Base @ DevConnect group by name
+export async function addMemberToBaseGlobalEvents(userInboxId: string): Promise<string> {
+  try {
+    if (!groupClient) {
+      return "❌ Group management system not initialized. Please try again later.";
+    }
+
+    console.log(`🎯 Adding user ${userInboxId} to Base @ DevConnect group`);
+
+    await groupClient.conversations.sync();
+    const allConversations = await groupClient.conversations.list();
+    
+    // Find the group by name "Base @ DevConnect"
+    const group = allConversations.find(conv => {
+      const details = conv as any;
+      return details.name === "Base @ DevConnect";
+    });
+    
+    if (!group) {
+      console.log(`❌ Base @ DevConnect group not found in agent's conversations`);
+      console.log(`🔍 Available groups:`);
+      allConversations.filter(c => c.constructor.name === 'Group').forEach(conv => {
+        const details = conv as any;
+        console.log(`  - ${conv.id}: ${details.name || 'No name'}`);
+      });
+      return `❌ Could not find Base @ DevConnect group. The agent needs to be added to this group first. Please contact support to add the agent to the Base @ DevConnect group.`;
+    }
+
+    console.log(`✅ Found Base @ DevConnect group: ${group.id}`);
+    console.log(`   Name: ${(group as any).name || 'No name'}`);
+
+    // Add the member to the group using the correct XMTP method
+    try {
+      await (group as any).addMembers([userInboxId]);
+      console.log(`✅ Successfully added user to Base @ DevConnect group`);
+    } catch (addError: any) {
+      console.log(`❌ Error for Base @ DevConnect: ${addError.message}`);
+      
+      if (addError.message?.includes('already') || addError.message?.includes('duplicate')) {
+        console.log(`ℹ️ User was already in Base @ DevConnect group`);
+        return `✅ You're already in the Base @ DevConnect group! You'll receive exclusive updates and can participate in community discussions.`;
+      } else if (addError.message?.includes('Failed to verify all installations') || addError.code === 'GenericFailure') {
+        console.log(`⚠️ Installation verification failed for Base @ DevConnect group - this is a temporary XMTP network issue`);
+        return `⚠️ There's a temporary network issue preventing group access right now. 
+
+Please try joining the Base @ DevConnect group again in a few minutes, or contact support if the issue persists.
+
+The group chat is available and you can try again later!`;
+      } else {
+        console.log(`❌ Unknown error for Base @ DevConnect group:`, addError);
+        return `❌ Failed to add you to the Base @ DevConnect group. Error: ${addError.message || 'Unknown error'}. Please contact support.`;
+      }
+    }
+    
+    return `✅ Great! You're now in the Base @ DevConnect group chat. 
+
+You'll receive exclusive updates and can participate in community discussions about future Base events!
+
+Check your group chats to see the conversation.`;
+
+  } catch (error: any) {
+    console.error(`❌ Error adding member to Base @ DevConnect group:`, error);
+    return `❌ Failed to add you to the Base @ DevConnect group. Please contact support or try again later.`;
   }
 }
 

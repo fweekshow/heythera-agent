@@ -198,10 +198,17 @@ export async function confirmBroadcast(
     let successCount = 0;
     let errorCount = 0;
 
-    // Send to all conversations except the current one
+    // Send to DM conversations only (skip groups)
     for (const conversation of conversations) {
       try {
         if (conversation.id !== pending.conversationId) {
+          // Check if this is a DM (not a group) by checking if it's not a Group instance
+          const isGroup = conversation.constructor.name === 'Group';
+          if (isGroup) {
+            console.log(`⏭️ Skipping group conversation: ${conversation.id}`);
+            continue;
+          }
+          
           await conversation.send(pending.formattedContent);
           successCount++;
           await new Promise(resolve => setTimeout(resolve, 100));
@@ -217,7 +224,7 @@ export async function confirmBroadcast(
 
     const resultMessage = `✅ Broadcast sent successfully!\n\n` +
       `📊 Results:\n` +
-      `• Delivered to: ${successCount} conversations\n` +
+      `• Delivered to: ${successCount} DM conversations\n` +
       `• Failed: ${errorCount} conversations\n` +
       `• Total conversations: ${conversations.length}`;
 
@@ -241,6 +248,289 @@ export async function cancelBroadcast(senderInboxId: string): Promise<string> {
   pendingBroadcasts.delete(senderInboxId);
   console.log(`🚫 Broadcast cancelled by ${senderInboxId}`);
   return "✅ Broadcast cancelled successfully.";
+}
+
+// Method 1: Broadcast with built-in quick actions
+export async function previewBroadcastActions(
+  message: string,
+  senderInboxId: string,
+  currentConversationId: string
+): Promise<string> {
+  try {
+    if (!broadcastClient) {
+      return "❌ Broadcast system not initialized. Please try again later.";
+    }
+
+    if (!message || message.trim().length === 0) {
+      return "❌ Broadcast message cannot be empty. Use: /broadcastactions [your message]";
+    }
+
+    // Check authorization
+    if (!(await isAuthorizedBroadcaster(senderInboxId))) {
+      return "❌ Access denied. You are not authorized to send broadcast messages.";
+    }
+
+    // Get sender identifier
+    const senderName = await getSenderIdentifier(senderInboxId);
+    
+    // Format the broadcast content
+    const broadcastContent = `📢 BASECAMP 2025 BROADCAST\n\n${message.trim()}\n\n---\nSent by: ${senderName}`;
+    
+    // Store pending broadcast
+    pendingBroadcasts.set(senderInboxId, {
+      message: message.trim(),
+      senderInboxId,
+      conversationId: currentConversationId,
+      senderName,
+      formattedContent: broadcastContent
+    });
+
+    // Show preview and ask for confirmation with Quick Actions
+    const previewActionsContent: ActionsContent = {
+      id: "broadcast_actions_confirmation",
+      description: `📋 BROADCAST WITH QUICK ACTIONS PREVIEW\n\n${broadcastContent}\n\n📊 Will be sent to all conversations with quick action buttons.\n\nShould I send the message?`,
+      actions: [
+        {
+          id: "broadcast_actions_yes",
+          label: "✅ Yes, Send with Actions",
+          style: "primary"
+        },
+        {
+          id: "broadcast_actions_no",
+          label: "❌ No, Cancel",
+          style: "secondary"
+        }
+      ]
+    };
+
+    return JSON.stringify({
+      contentType: "coinbase.com/actions:1.0",
+      content: previewActionsContent
+    });
+    
+  } catch (error: any) {
+    console.error("❌ Error creating broadcast actions preview:", error);
+    return "❌ Failed to create broadcast actions preview. Please try again later.";
+  }
+}
+
+// Confirm and send broadcast with quick actions
+export async function confirmBroadcastActions(
+  senderInboxId: string,
+  conversationId: string
+): Promise<string> {
+  try {
+    const pending = pendingBroadcasts.get(senderInboxId);
+    
+    if (!pending) {
+      return "❌ No pending broadcast found. Use /broadcastactions [message] first.";
+    }
+
+    if (!broadcastClient) {
+      return "❌ Broadcast system not initialized. Please try again later.";
+    }
+
+    console.log(`📢 Confirming broadcast with actions from ${senderInboxId}: "${pending.message}"`);
+
+    // Get all conversations
+    await broadcastClient.conversations.sync();
+    const conversations = await broadcastClient.conversations.list();
+    
+    if (conversations.length === 0) {
+      return "⚠️ No conversations found to broadcast to.";
+    }
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    // Create the quick actions content for the broadcast with direct yes/no
+    const broadcastActionsContent: ActionsContent = {
+      id: "basecamp_broadcast_actions",
+      description: pending.formattedContent,
+      actions: [
+        {
+          id: "confirm_join_events",
+          label: "✅ Yes, Join Group",
+          style: "primary"
+        },
+        {
+          id: "decline_join_events",
+          label: "❌ No, Thanks",
+          style: "secondary"
+        }
+      ]
+    };
+
+    // Send to DM conversations only (skip groups)
+    for (const conversation of conversations) {
+      try {
+        if (conversation.id !== pending.conversationId) {
+          // Check if this is a DM (not a group) by checking if it's not a Group instance
+          const isGroup = conversation.constructor.name === 'Group';
+          if (isGroup) {
+            console.log(`⏭️ Skipping group conversation: ${conversation.id}`);
+            continue;
+          }
+          
+          // Send as ActionsContent to DM only
+          await (conversation as any).send(broadcastActionsContent, "coinbase.com/actions:1.0");
+          successCount++;
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      } catch (error: any) {
+        console.error(`❌ Failed to send broadcast to conversation ${conversation.id}:`, error);
+        errorCount++;
+      }
+    }
+
+    // Clear pending broadcast
+    pendingBroadcasts.delete(senderInboxId);
+
+    const resultMessage = `✅ Broadcast with quick actions sent successfully!\n\n` +
+      `📊 Results:\n` +
+      `• Delivered to: ${successCount} conversations\n` +
+      `• Failed: ${errorCount} conversations\n` +
+      `• Total conversations: ${conversations.length}`;
+
+    console.log(`📢 Broadcast with actions completed: ${successCount} success, ${errorCount} errors`);
+    return resultMessage;
+    
+  } catch (error: any) {
+    console.error("❌ Error confirming broadcast with actions:", error);
+    return "❌ Failed to send broadcast with actions. Please try again later.";
+  }
+}
+
+// Method 2: Regular broadcast that asks users to send "Join Base Global Events" message
+export async function previewBroadcastJoin(
+  message: string,
+  senderInboxId: string,
+  currentConversationId: string
+): Promise<string> {
+  try {
+    if (!broadcastClient) {
+      return "❌ Broadcast system not initialized. Please try again later.";
+    }
+
+    if (!message || message.trim().length === 0) {
+      return "❌ Broadcast message cannot be empty. Use: /broadcastjoin [your message]";
+    }
+
+    // Check authorization
+    if (!(await isAuthorizedBroadcaster(senderInboxId))) {
+      return "❌ Access denied. You are not authorized to send broadcast messages.";
+    }
+
+    // Get sender identifier
+    const senderName = await getSenderIdentifier(senderInboxId);
+    
+    // Format the broadcast content with join instruction
+    const broadcastContent = `📢 BASECAMP 2025 BROADCAST\n\n${message.trim()}\n\n💡 To join Base @ DevConnect, simply reply with: "Join Base @ DevConnect"\n\n---\nSent by: ${senderName}`;
+    
+    // Store pending broadcast
+    pendingBroadcasts.set(senderInboxId, {
+      message: message.trim(),
+      senderInboxId,
+      conversationId: currentConversationId,
+      senderName,
+      formattedContent: broadcastContent
+    });
+
+    // Show preview and ask for confirmation with Quick Actions
+    const previewActionsContent: ActionsContent = {
+      id: "broadcast_join_confirmation",
+      description: `📋 BROADCAST WITH JOIN INSTRUCTION PREVIEW\n\n${broadcastContent}\n\n📊 Will be sent to all conversations.\n\nShould I send the message?`,
+      actions: [
+        {
+          id: "broadcast_join_yes",
+          label: "✅ Yes, Send with Join Instruction",
+          style: "primary"
+        },
+        {
+          id: "broadcast_join_no",
+          label: "❌ No, Cancel",
+          style: "secondary"
+        }
+      ]
+    };
+
+    return JSON.stringify({
+      contentType: "coinbase.com/actions:1.0",
+      content: previewActionsContent
+    });
+    
+  } catch (error: any) {
+    console.error("❌ Error creating broadcast join preview:", error);
+    return "❌ Failed to create broadcast join preview. Please try again later.";
+  }
+}
+
+// Confirm and send broadcast with join instruction
+export async function confirmBroadcastJoin(
+  senderInboxId: string,
+  conversationId: string
+): Promise<string> {
+  try {
+    const pending = pendingBroadcasts.get(senderInboxId);
+    
+    if (!pending) {
+      return "❌ No pending broadcast found. Use /broadcastjoin [message] first.";
+    }
+
+    if (!broadcastClient) {
+      return "❌ Broadcast system not initialized. Please try again later.";
+    }
+
+    console.log(`📢 Confirming broadcast with join instruction from ${senderInboxId}: "${pending.message}"`);
+
+    // Get all conversations
+    await broadcastClient.conversations.sync();
+    const conversations = await broadcastClient.conversations.list();
+    
+    if (conversations.length === 0) {
+      return "⚠️ No conversations found to broadcast to.";
+    }
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    // Send to DM conversations only (skip groups)
+    for (const conversation of conversations) {
+      try {
+        if (conversation.id !== pending.conversationId) {
+          // Check if this is a DM (not a group) by checking if it's not a Group instance
+          const isGroup = conversation.constructor.name === 'Group';
+          if (isGroup) {
+            console.log(`⏭️ Skipping group conversation: ${conversation.id}`);
+            continue;
+          }
+          
+          await conversation.send(pending.formattedContent);
+          successCount++;
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      } catch (error: any) {
+        console.error(`❌ Failed to send broadcast to conversation ${conversation.id}:`, error);
+        errorCount++;
+      }
+    }
+
+    // Clear pending broadcast
+    pendingBroadcasts.delete(senderInboxId);
+
+    const resultMessage = `✅ Broadcast with join instruction sent successfully!\n\n` +
+      `📊 Results:\n` +
+      `• Delivered to: ${successCount} DM conversations\n` +
+      `• Failed: ${errorCount} conversations\n` +
+      `• Total conversations: ${conversations.length}`;
+
+    console.log(`📢 Broadcast with join instruction completed: ${successCount} success, ${errorCount} errors`);
+    return resultMessage;
+    
+  } catch (error: any) {
+    console.error("❌ Error confirming broadcast with join instruction:", error);
+    return "❌ Failed to send broadcast with join instruction. Please try again later.";
+  }
 }
 
 // Original broadcast function (now used internally by confirm)
@@ -293,11 +583,18 @@ export async function sendBroadcast(
     let successCount = 0;
     let errorCount = 0;
 
-    // Send to all conversations except the current one
+    // Send to DM conversations only (skip groups)
     for (const conversation of conversations) {
       try {
         // Skip sending to the conversation where the broadcast was initiated
         if (conversation.id === currentConversationId) {
+          continue;
+        }
+        
+        // Check if this is a DM (not a group) by checking if it's not a Group instance
+        const isGroup = conversation.constructor.name === 'Group';
+        if (isGroup) {
+          console.log(`⏭️ Skipping group conversation: ${conversation.id}`);
           continue;
         }
         
@@ -314,7 +611,7 @@ export async function sendBroadcast(
 
     const resultMessage = `✅ Broadcast sent successfully!\n\n` +
       `📊 Results:\n` +
-      `• Delivered to: ${successCount} conversations\n` +
+      `• Delivered to: ${successCount} DM conversations\n` +
       `• Failed: ${errorCount} conversations\n` +
       `• Total conversations: ${conversations.length}`;
 
