@@ -99,3 +99,17 @@ dist
 # Temporary folders
 tmp/
 temp/
+
+# Railway/deployment related files with potential sensitive data
+railway-config.json
+deployment-secrets.json
+
+# Analytics and scraping scripts (may contain sensitive data)
+*-analytics.js
+*-scraper.js
+*-fetcher.js
+
+# Any files containing credentials or tokens
+*credentials*
+*tokens*
+*secrets*
