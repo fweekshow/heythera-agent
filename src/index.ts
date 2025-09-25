@@ -5,6 +5,14 @@ import { AIAgent } from "./services/agent/index.js";
 import { setBroadcastClient } from "./services/agent/tools/broadcast.js";
 // Urgent message system disabled
 import { setGroupClient } from "./services/agent/tools/activityGroups.js";
+import { 
+  handleSidebarRequest, 
+  joinSidebarGroup, 
+  declineSidebarGroup,
+  parseSidebarCommand,
+  isSidebarRequest,
+  setSidebarClient
+} from "./services/agent/tools/sidebarGroups.js";
 import {
   createSigner,
   getDbPath,
@@ -172,6 +180,19 @@ async function handleMessage(message: DecodedMessage, client: Client) {
 
     try {
       console.log(`🤖 Processing message: "${cleanContent}"`);
+      
+      // Check for sidebar group creation requests (only in groups)
+      if (isGroup && isSidebarRequest(cleanContent)) {
+        const groupName = parseSidebarCommand(cleanContent);
+        if (groupName) {
+          console.log(`🎯 Processing sidebar group request: "${groupName}"`);
+          const sidebarResponse = await handleSidebarRequest(groupName, message, client, conversation);
+          if (sidebarResponse) {
+            await conversation.send(sidebarResponse);
+          }
+          return; // Exit early, sidebar request handled
+        }
+      }
       
       // Check for broadcast commands and handle with preview
       if (!isGroup && cleanContent.toLowerCase().startsWith("/broadcast ")) {
@@ -755,6 +776,9 @@ async function main() {
     
     // Initialize group client for activity groups
     setGroupClient(client);
+    
+    // Initialize sidebar client for sidebar groups
+    setSidebarClient(client);
     
     
     // Initialize agent in activity groups
@@ -1365,6 +1389,24 @@ Is there anything else I can help with?`,
           await conversation.send("Great! Message me 👋 if you want to view the option menu again!");
           break;
         default:
+          // Handle sidebar group actions with dynamic IDs
+          if (actionId.startsWith('join_sidebar_')) {
+            const groupId = actionId.replace('join_sidebar_', '');
+            console.log(`🎯 User joining sidebar group: ${groupId}`);
+            const joinResult = await joinSidebarGroup(groupId, message.senderInboxId);
+            await conversation.send(joinResult);
+            break;
+          }
+          
+          if (actionId.startsWith('decline_sidebar_')) {
+            const groupId = actionId.replace('decline_sidebar_', '');
+            console.log(`🎯 User declining sidebar group: ${groupId}`);
+            const declineResult = await declineSidebarGroup(groupId, message.senderInboxId);
+            await conversation.send(declineResult);
+            break;
+          }
+          
+          // Default fallback for unrecognized actions
           await conversation.send("Thanks for your selection!");
       }
       continue;
