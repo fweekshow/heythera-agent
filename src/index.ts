@@ -738,23 +738,7 @@ Is there anything else I can help with?`,
   }
 }
 
-// Simple health check endpoint for Railway
-if (process.env.NODE_ENV === 'production') {
-  const http = require('http');
-  const port = process.env.PORT || 3000;
-  
-  http.createServer((req: any, res: any) => {
-    if (req.url === '/health') {
-      res.writeHead(200, { 'Content-Type': 'text/plain' });
-      res.end('OK');
-    } else {
-      res.writeHead(404);
-      res.end('Not Found');
-    }
-  }).listen(port, () => {
-    console.log(`🏥 Health check server running on port ${port}`);
-  });
-}
+// Railway monitoring will handle health checks automatically
 
 async function main() {
   try {

@@ -1,5 +1,7 @@
 import Database from "better-sqlite3";
 import { DateTime } from "luxon";
+import fs from "fs";
+import path from "path";
 import { EVENT_TZ } from "@/constant.js";
 
 let db: Database.Database | null = null;
@@ -150,8 +152,6 @@ export function initDb(): void {
   
   // Create directory if it doesn't exist (for production)
   if (isProduction) {
-    const fs = require('fs');
-    const path = require('path');
     const dir = path.dirname(dbPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
