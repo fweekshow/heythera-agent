@@ -7,14 +7,17 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies (use npm install instead of ci for better compatibility)
-RUN npm install --omit=dev
-
-# Copy source code
+# Copy source code first
 COPY . .
+
+# Install all dependencies (including dev dependencies for build)
+RUN npm install
 
 # Build the application
 RUN npm run build
+
+# Remove dev dependencies after build
+RUN npm prune --omit=dev
 
 # Create data directory for persistent storage (Railway volume will mount here)
 RUN mkdir -p /app/data
