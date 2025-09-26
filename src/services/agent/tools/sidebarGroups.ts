@@ -182,18 +182,18 @@ The sidebar group is available and you can try again later!`;
     // Send a welcome message to help the user identify the group
     await sidebarGroup.send(`🎉 ${userInboxId} joined the "${sidebarGroupData.name}" sidebar discussion!`);
 
-    // Create Base App deeplinks - try group format first, fallback to agent DM
-    const agentAddress = sidebarClient!.accountIdentifier; // Get agent's address
-    const groupDeeplink = `cbwallet://messaging/group/${groupId}`;
+    // Get agent's actual address properly
+    const inboxState = await sidebarClient!.preferences.inboxState();
+    const agentAddress = inboxState.identifiers[0]?.identifier || 'unknown';
+    
+    // For now, use agent DM deeplink since group deeplink format is unclear
     const agentDeeplink = `cbwallet://messaging/${agentAddress}`;
 
     return `✅ Great! You're now in "${sidebarGroupData.name}" sidebar group.
 
-🔗 **Open your sidebar group:** ${groupDeeplink}
+💬 **Message me to access the group:** ${agentDeeplink}
 
-💬 *If the group link doesn't work, you can also message me directly:* ${agentDeeplink}
-
-You'll receive messages and can participate in this focused discussion!`;
+You'll receive messages and can participate in this focused discussion! Check your group conversations for the new sidebar.`;
 
   } catch (error: any) {
     console.error("❌ Error joining sidebar group:", error);
