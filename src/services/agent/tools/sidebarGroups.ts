@@ -41,12 +41,7 @@ export async function handleSidebarRequest(
     console.log(`🎯 Creating sidebar group "${groupName}" requested by ${requesterInboxId}`);
 
     // Step 1: Create XMTP group with requester and agent as initial members
-    // Include the group name and permission level in the creation options
-    const sidebarGroup = await sidebarClient!.conversations.newGroup([requesterInboxId], {
-      permissionLevel: "admin_only",
-      name: groupName,
-      description: `Sidebar discussion: ${groupName}`
-    });
+    const sidebarGroup = await sidebarClient!.conversations.newGroup([requesterInboxId]);
     
     console.log(`✅ Created sidebar group: ${sidebarGroup.id}`);
 
@@ -119,7 +114,7 @@ export async function handleSidebarRequest(
     console.log(`📤 Sent sidebar group invitation to original group conversation`);
 
     // Step 8: Return a simple confirmation (no additional message needed)
-    return null; // Don't send a separate confirmation message
+    return ""; // Don't send a separate confirmation message
 
   } catch (error: any) {
     console.error("❌ Error creating sidebar group:", error);
@@ -195,11 +190,18 @@ The sidebar group is available and you can try again later!`;
     // Send a welcome message to help the user identify the group
     await sidebarGroup.send(`🎉 ${userInboxId} joined the "${sidebarGroupData.name}" sidebar discussion!`);
 
+    // Create Base App deeplinks - try group format first, fallback to agent DM
+    const agentAddress = sidebarClient!.accountIdentifier; // Get agent's address
+    const groupDeeplink = `cbwallet://messaging/group/${groupId}`;
+    const agentDeeplink = `cbwallet://messaging/${agentAddress}`;
+
     return `✅ Great! You're now in "${sidebarGroupData.name}" sidebar group.
 
-You'll receive messages and can participate in this focused discussion!
+🔗 **Open your sidebar group:** ${groupDeeplink}
 
-🔄 Check your Base App conversations - you should see a new group chat. If it doesn't appear immediately, try refreshing your conversations in Base App.`;
+💬 *If the group link doesn't work, you can also message me directly:* ${agentDeeplink}
+
+You'll receive messages and can participate in this focused discussion!`;
 
   } catch (error: any) {
     console.error("❌ Error joining sidebar group:", error);

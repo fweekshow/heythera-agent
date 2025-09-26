@@ -147,6 +147,17 @@ export function initDb(): void {
     ? "/app/data/reminders.db3" 
     : "reminders.db3";
   console.log(`📋 Reminders database path: ${dbPath}`);
+  
+  // Create directory if it doesn't exist (for production)
+  if (isProduction) {
+    const fs = require('fs');
+    const path = require('path');
+    const dir = path.dirname(dbPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  }
+  
   openRemindersDb(dbPath);
 }
 
