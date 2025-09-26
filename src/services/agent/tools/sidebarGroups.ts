@@ -45,23 +45,15 @@ export async function handleSidebarRequest(
     
     console.log(`✅ Created sidebar group: ${sidebarGroup.id}`);
 
-    // Step 2: Debug the group name that was actually set
+    // Step 2: Set the group name after creation
     try {
       const currentName = (sidebarGroup as any).name;
-      console.log(`🔍 DEBUG: Group name after creation: "${currentName}"`);
-      console.log(`🔍 DEBUG: Expected group name: "${groupName}"`);
-      console.log(`🔍 DEBUG: Group object keys:`, Object.keys(sidebarGroup));
-      
-      // Try to set group name explicitly if not correct
       if (!currentName || currentName !== groupName) {
-        console.log(`🔧 Setting group name explicitly to "${groupName}"`);
-        // Use the updateName method that we found in the debug logs
         await (sidebarGroup as any).updateName(groupName);
-        console.log(`✅ Updated group name to "${groupName}"`);
+        console.log(`✅ Set sidebar group name: "${groupName}"`);
       }
     } catch (nameError: any) {
       console.log(`⚠️ Could not set group name: ${nameError.message}`);
-      // Continue anyway - the functionality still works
     }
 
     // Step 3: Store sidebar group metadata

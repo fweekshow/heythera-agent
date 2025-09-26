@@ -7,7 +7,7 @@ export const DEFAULT_MODEL = process.env.DEFAULT_MODEL;
 
 // Configurable settings
 export const MENTION_HANDLES = process.env.MENTION_HANDLES || "basecamp.base.eth, @rocky";
-export const DEBUG_LOGS = process.env.DEBUG_LOGS === "true";
+export const DEBUG_LOGS = process.env.DEBUG_LOGS === "true" && process.env.NODE_ENV !== "production";
 export const SHOW_SENDER_ADDRESS = process.env.SHOW_SENDER_ADDRESS === "true";
 
 //RSVP Backend Base Url
