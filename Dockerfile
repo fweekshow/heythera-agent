@@ -1,5 +1,5 @@
-# Use Node.js 20 (matches your local version for consistency)
-FROM node:20-alpine
+# Use Node.js 20 (stable LTS version)
+FROM node:20
 
 # Set working directory
 WORKDIR /app
@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --omit=dev
+# Install dependencies (use npm install instead of ci for better compatibility)
+RUN npm install --omit=dev
 
 # Copy source code
 COPY . .
@@ -22,9 +22,7 @@ RUN mkdir -p /app/data
 # Expose port (Railway will set PORT env var)
 EXPOSE $PORT
 
-# Add health check endpoint
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:$PORT/health || exit 1
+# Health check will be handled by Railway's built-in monitoring
 
 # Start the application
 CMD ["npm", "start"]
