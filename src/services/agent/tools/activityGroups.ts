@@ -27,45 +27,31 @@ export async function initializeAgentInGroups(): Promise<void> {
   
   console.log("🔄 Getting conversation list...");
   const allConversations = await groupClient.conversations.list();
-  console.log(`🔍 Agent has access to ${allConversations.length} total conversations:`);
-  console.log(`🔍 Raw conversations:`, allConversations.map(c => ({ id: c.id, type: c.constructor.name })));
-  console.log(`🔍 Agent address: ${groupClient.accountIdentifier}`);
-  
-  for (const conv of allConversations) {
-    const type = conv.constructor.name;
-    console.log(`  - ${conv.id} (${type})`);
-    
-    // If it's a group, try to get more details
-    if (type === 'Group') {
-      try {
-        const groupDetails = conv as any;
-        console.log(`    Name: ${groupDetails.name || 'No name'}`);
-        console.log(`    Description: ${groupDetails.description || 'No description'}`);
-        console.log(`    Metadata: ${JSON.stringify(groupDetails.metadata || {})}`);
-        console.log(`    Participants: ${groupDetails.participants?.length || 0} members`);
-      } catch (error) {
-        console.log(`    Could not get group details: ${error}`);
-      }
-    }
-  }
+  console.log(`🔍 Agent has access to ${allConversations.length} total conversations`);
   
   // Check if agent has access to all activity groups
   for (const [activity, groupId] of Object.entries(ACTIVITY_GROUPS)) {
     try {
-      console.log(`🔄 Checking ${activity} group (${groupId})...`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`🔄 Checking ${activity} group (${groupId})...`);
+      }
       
       // Look for group by exact ID match
       const group = allConversations.find(conv => conv.id === groupId);
       
       if (group) {
         const groupDetails = group as any;
-        console.log(`✅ Found ${activity} group: ${group.id}`);
-        console.log(`   Name: ${groupDetails.name || 'No name'}`);
-        console.log(`   Description: ${groupDetails.description || 'No description'}`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`✅ Found ${activity} group: ${group.id}`);
+          console.log(`   Name: ${groupDetails.name || 'No name'}`);
+          console.log(`   Description: ${groupDetails.description || 'No description'}`);
+        }
       } else {
-        console.log(`❌ ${activity} group not found!`);
-        console.log(`💡 Expected ID: ${groupId}`);
-        console.log(`💡 Agent address: ${(groupClient as any).address || 'unknown'}`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`❌ ${activity} group not found!`);
+          console.log(`💡 Expected ID: ${groupId}`);
+          console.log(`💡 Agent address: ${(groupClient as any).address || 'unknown'}`);
+        }
       }
       
     } catch (error) {

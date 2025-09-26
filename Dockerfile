@@ -25,7 +25,5 @@ RUN mkdir -p /app/data
 # Expose port (Railway will set PORT env var)
 EXPOSE $PORT
 
-# Health check will be handled by Railway's built-in monitoring
-
 # Start the application
 CMD ["npm", "start"]
