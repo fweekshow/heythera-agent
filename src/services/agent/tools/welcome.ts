@@ -7,7 +7,7 @@ export const sendWelcomeMessage = tool(
       contentType: "coinbase.com/actions:1.0",
       content: {
         id: "basecamp_welcome_actions",
-        description: "Hi! I'm Rocky the Basecamp Agent. Here are things I can help you with:",
+        description: "Hi! I'm Thera your Wellness Concierge assistant. Here are things I can help you with:",
         actions: [
           {
             id: "schedule",
@@ -41,15 +41,15 @@ export const sendWelcomeMessage = tool(
 
 export const showHelp = tool(
   () => {
-    return `🤖 Basecamp 2025 Concierge - Available Commands
+    return `🤖 Thera - Wellness Concierge Assistant - Available Commands
 
 📅 SCHEDULE COMMANDS:
-• "schedule" - Get the 3-day event itinerary
-• "schedule [day]" - Get schedule for specific day (Sunday, Monday, Tuesday)
+• "schedule" - Get the weekly therapeutic schedule
+• "schedule [day]" - Get schedule for specific day (Monday-Saturday)
 
 ℹ️ INFO COMMANDS:
-• "info" or "about basecamp" - General information about Basecamp 2025
-• "faq" - Get FAQ topics (detailed answers on website)
+• "info" or "about red door" - General information about Red Door Life Group
+• "facilitators" - Learn about our therapeutic staff
 
 ⏰ REMINDER COMMANDS:
 • "remind me [message] at [time]" - Set a reminder
@@ -59,18 +59,18 @@ export const showHelp = tool(
 
 💡 EXAMPLES:
 • "What's the schedule for Monday?"
-• "What is Basecamp?"
-• "Remind me to submit application tomorrow"
-• "When does the Welcome Reception start?"
+• "When is yoga with Monique?"
+• "Remind me about DBT skills tomorrow"
+• "Who facilitates trauma education?"
 
 Need more help? Just ask me naturally - I understand conversational requests too!
 
-Official site: https://www.basecamp2025.xyz 
-Updates: @base`;
+Official site: https://www.reddoor.life 
+Contact: 424.242.2760`;
   },
   {
     name: "ShowHelp",
     description:
-      "Shows detailed help information with available commands for Basecamp 2025",
+      "Shows detailed help information with available commands for Red Door Life Group",
   },
 );

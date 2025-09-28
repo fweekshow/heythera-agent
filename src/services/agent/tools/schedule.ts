@@ -3,139 +3,131 @@ import { DateTime } from "luxon";
 import { EVENT_TZ, eventDate } from "../../../constant.js";
 import { z } from "zod";
 
-export const SPEAKERS_DATA = {
-  "Jesse Pollak": {
-    title: "Founder, Base",
-    bio: "Founder of Base, leading the development of the Base blockchain and ecosystem."
+export const FACILITATORS_DATA = {
+  "Chris": {
+    title: "Fitness Instructor",
+    bio: "Leads the daily group workout sessions to help residents start their day with energy and movement."
   },
-  "Shan Aggarwal": {
-    title: "Chief Business Officer, Coinbase", 
-    bio: "Chief Business Officer at Coinbase, overseeing business strategy and operations."
+  "Monique": {
+    title: "Yoga/Breathwork/Sound Healing Facilitator", 
+    bio: "Specializes in holistic healing practices including yoga, breathwork, and sound healing sessions."
   },
-  "Jacob Horne": {
-    title: "Co-Founder, Zora",
-    bio: "Co-Founder of Zora, building tools for creators and communities onchain."
+  "David": {
+    title: "Mental Health Counselor",
+    bio: "Helps residents navigate mental health struggles and develop healthy coping strategies."
   },
-  "Alexander Cutler": {
-    title: "Co-Founder, Aerodrome",
-    bio: "Co-Founder of Aerodrome, developing DeFi infrastructure on Base."
+  "Christopher": {
+    title: "Spirituality in Recovery Facilitator",
+    bio: "Guides residents in exploring spiritual aspects of their recovery journey."
   },
-  "Brianna Chang": {
-    title: "Head of Product, Virtuals",
-    bio: "Head of Product at Virtuals, working on virtual world and metaverse experiences."
+  "Colin": {
+    title: "Recovery Counselor",
+    bio: "Specializes in coping with change and relapse prevention strategies."
   },
-  // Additional speakers for searchability
-  "Wilson Cusack": { title: "", bio: "" },
-  "Antonio Garcia-Martinez": { title: "", bio: "" },
-  "Spencer Stock": { title: "", bio: "" },
-  "Conner Swenberg": { title: "", bio: "" },
-  "Zachary Frey": { title: "", bio: "" },
-  "Jeremy Pan": { title: "", bio: "" },
-  "Patrick Hughes": { title: "", bio: "" },
-  "Boys Club": { title: "", bio: "" },
-  "Aneri Amin": { title: "", bio: "" },
-  "Xen Baynham-Herd": { title: "", bio: "" },
-  "Bradley Freeman": { title: "", bio: "" },
-  "Kabir Sadarangani": { title: "", bio: "" },
-  "Tony Fahden": { title: "", bio: "" },
-  "Jess Sloss": { title: "", bio: "" },
-  "Josh Cornelius": { title: "", bio: "" },
-  "Maria Shen": { title: "", bio: "" },
-  "Jakub Rusiecki": { title: "", bio: "" },
-  "Bryan Colligan": { title: "", bio: "" },
-  "Devin Goodkin": { title: "", bio: "" },
-  "Claudia Haddad": { title: "", bio: "" },
-  "Shane Mac": { title: "", bio: "" }
+  "Donny": {
+    title: "Addiction Specialist",
+    bio: "Helps residents understand addiction and works with the 12 Dimensions program."
+  },
+  "Rachel": {
+    title: "Somatic Therapist",
+    bio: "Facilitates somatic writing and grief processing sessions."
+  },
+  "Matthew": {
+    title: "Relationships & Somatic Process Therapist",
+    bio: "Focuses on relationships in recovery and somatic processing techniques. Also leads Somatic Imagination sessions on Saturdays."
+  },
+  "Bianca": {
+    title: "Family Dynamics Specialist",
+    bio: "Works on healing family dynamics and the 12 Dimensions program."
+  },
+  "Emanuela": {
+    title: "Trauma & Psychospiritual Specialist",
+    bio: "Facilitates trauma education, psychospiritual practices, and emotional processing sessions."
+  },
+  "Matt M.": {
+    title: "Technology Wellness Facilitator",
+    bio: "Helps residents develop a healthy relationship with technology."
+  },
+  "Kristen": {
+    title: "12-Step Program Specialist",
+    bio: "Facilitates NA & The 12 Steps sessions and goal-setting workshops."
+  },
+  "Sean Patrick": {
+    title: "DBT Skills Therapist",
+    bio: "Teaches Dialectical Behavior Therapy skills for emotional regulation and interpersonal effectiveness."
+  },
+  "Tash": {
+    title: "Movement Therapist",
+    bio: "Teaches pole dancing and movement therapy in the yoga room."
+  }
 };
 
 export const SCHEDULE_DATA = {
-  sunday: {
-    title: "Sunday 9/14 — Arrival Day",
-    events: [
-      "9:00 AM: Alpine Club Lounge Opens - Welcome to Stowe. For early arrivals, grab a seat, meet some friends, and settle in.",
-      "2:00 PM: Basecamp Check-In - Drop your bags, pick up your field kit, and get ready for BaseCamp.",
-      "6:00 PM: Welcome Reception - The official kickoff. Drinks, bites, and a chance to meet others building on Base.",
-    ],
-  },
   monday: {
-    title: "Monday 9/15 — Day 1 (Full Programming)",
+    title: "Monday — Red Door Life Group Schedule",
     events: [
-      "8:00–10:00 AM: Breakfast",
-      "10:00 AM: State of Base w/ Jesse Pollak & Special Guests - BaseCamp kicks off with a look back on 2025 so far, a reminder of why we're here, and a path forward. Let's keep building in the open.",
-      "10:00–10:20 AM: Fireside Chat - Jesse Pollak & Shan Aggarwal (Chief Business Officer, Coinbase) discuss the current state of the industry and what comes next.",
-      "10:40–11:00 AM: Panel Discussion on Growth - Jesse Pollak, Alexander Cutler (Co-Founder, Aerodrome), Jacob Horne (Co-Founder, Zora), and Brianna Chang (Head of Product, Virtuals) share how they scaled their projects on Base. A conversation on choosing to build onchain, the unlocks that drove growth, and what they've learned that new builders can apply today.",
-      "11:30 AM–12:15 PM: Workshops Round 1 - Base Builder Product Roadmap, Making Onchain Payments Work for Everyone, Arming the Trenches",
-      "12:30–1:15 PM: Workshops Round 2 - Vibe Coding Cook Sesh, Base Ads Vision and Roadmap, From Code to Content: How to Make a Viral Video", 
-      "1:30–3:00 PM: Lunch",
-      "2:00 PM: The Coining Stack: A Deep-Dive on Coining Mechanics - Aneri Amin, Jacob Horne. Coining is emerging as a new engine for creator and trader value. Using real data and live examples from Zora, Paragraph, and more, this session maps out what's working, what isn't, and how others can lean in to push the space forward.",
-      "7:00–9:00 PM: Communal Banquet - Dinner",
-    ],
-    workshops: [
-      "11:30 AM–12:15 PM: Base Builder Product Roadmap - Wilson Cusack, Antonio Garcia-Martinez. A lightning round of product updates from the leads building the Base stack — Chain, Build, Ads, Account — followed by round table conversations about what's shipping next and how it all connects.",
-      "11:30 AM–12:15 PM: Making Onchain Payments Work for Everyone - Spencer Stock, Conner Swenberg. How tapping into the next-gen commerce stack helps creators, brands, and platforms cut out middlemen, lower fees, and find customers around the world.",
-      "11:30 AM–12:15 PM: Arming the Trenches - Zachary Frey, Jeremy Pan (O1). The team behind o1 shares what it takes to support active traders and how to improve.",
-      "12:30–1:15 PM: Vibe Coding Cook Sesh - Patrick Hughes. Sit down with Base DevRel and your favorite vibe-coding tool to spin up a production-ready mini app or agent, no code required.",
-      "12:30–1:15 PM: Base Ads Vision and Roadmap - Antonio Garcia-Martinez. Meet the Spindl team and learn how onchain ads can help you find the right users. Get a preview of the tools and products they're building to help projects grow sustainably on Base.",
-      "12:30–1:15 PM: From Code to Content: How to Make a Viral Video - Boys Club. Boys Club breaks down what actually makes content spread. Learn how to edit, package, and distribute video in ways that build a brand and grow your audience.",
-    ],
-    dayActivities: [
-      "7:00 AM: Yoga - Breathe deep, stretch it out. Morning and afternoon sessions taught by local instructors.",
-      "8:00 AM: Guided Trail Running - Start the day with a casual, community-paced run through the nearby trails, focused on connection, momentum, and moving together.",
-      "All Day: Tattoo Parlour - Choose from a selection of Basecamp inspired flash tattoos in our mini onsite tattoo parlor.",
-      "All Day: Merch Trading Post",
-      "11:00 AM–7:00 PM: Lawn Games",
-      "11:00 AM–8:00 PM: Co-work & Co-create",
-      "2:00–4:00 PM: Mushroom Lab - Forage with Spruce Peak's resident mushroom farmer Kevin and resident chef Sean, to discover the edible secrets of the forest floor.",
-      "2:00–3:00 PM: Yoga",
-      "3:00–5:00 PM: Pickleball Tournament - A pickleball competition tracked with Bracky. All skill levels are welcome. Paddles and balls provided.",
-      "5:00–6:30 PM: Whiskey Tasting - Savor a curated tasting led by WhistlePig, featuring the Farm Flight lineup: Farmstock, Campstock, and Homestate whiskeys.",
-    ],
-    nightActivities: [
-      "9:00 PM: Night Hike - A guided walk under the stars. Move slowly and mindfully as you tune into the night's sights and sounds. Glow sticks will be provided.",
-      "9:00–11:00 PM: Gaming - A blend of analog and digital gaming experiences, with both casual sessions and bracketed tournaments.",
-      "9:00–10:30 PM: Whiskey Tasting - Savor a curated tasting led by WhistlePig, featuring the Farm Flight lineup: Farmstock, Campstock, and Homestate whiskeys.",
-      "Varies: Karaoke - Who's ready to sing? Step up, cheer others on, and post these moments to the Base App.",
-      "Varies: Poker - Texas Hold 'Em in the ballroom. Beginners to sharks, all are welcome.",
-      "Varies: Village Green Fire Pits",
+      "8:00 AM: Daily Group Workout w/ Chris",
+      "9:00 AM: Daily Intentions",
+      "10:00 AM: Yoga/Breathwork/Sound Healing w/ Monique",
+      "11:00 AM: Coping with Change w/ Colin",
+      "1:00 PM: 12 Dimensions w/ Bianca",
+      "2:00 PM: Balance and Wellness through Technology w/ Matt M.",
+      "3:00 PM: NA & The 12 Steps w/ Kristen",
+      "4:00 PM: Soundbath with Monique (Yoga Room)",
     ],
   },
   tuesday: {
-    title: "Tuesday 9/16 — Day 2",
+    title: "Tuesday — Red Door Life Group Schedule",
     events: [
-      "8:00–10:00 AM: Breakfast",
-      "10:00 AM: Jesse AMA - An open conversation with Jesse. Ask anything about Base, the ecosystem, or where we're heading.",
-      "11:30 AM–12:15 PM: Workshops Round 3 - The Base Network State, Mini Apps To Unlock The New Creator Era, Governance Roundtable: Aligning Incentives for the Onchain Economy",
-      "12:30–1:15 PM: Workshops Round 4 - Let the Deals Flow: VC and Investment Landscape as Told by Investors, DeFi Deals: How to Bootstrap TVL on Base, The Coining Stack: A Deep-Dive on Coining Mechanics",
-      "1:30–3:00 PM: Lunch",
-      "2:00 PM: Building Agents People Can't Stop Talking To - Claudia Haddad, Shane Mac (XMTP). Learn from XMTP and top builders on how to get the most out of AI agents. See what they enable, how to integrate them into your app, and what best practices are emerging as people grow accustomed to using them.",
-      "7:00 PM: Dinner: Food Truck Festival",
-      "8:00 PM: Live Band Performance - Close out the day with a soundtrack under the stars.",
-    ],
-    workshops: [
-      "11:30 AM–12:15 PM: The Base Network State - Xen Baynham-Herd. Base's head of Global Growth on how we're shaping Base into a borderless, onchain society. A look at how Balaji's network state framework applies in practice, and the steps we're taking to get there.",
-      "11:30 AM–12:15 PM: Mini Apps To Unlock The New Creator Era - Bradley Freeman. From livestreaming to IRL events to social, Base is for creators across every medium. A first look at creator-focused mini apps that make it easier to connect, earn, and grow onchain.",
-      "11:30 AM–12:15 PM: Governance Roundtable: Aligning Incentives for the Onchain Economy - Kabir Sadarangani. Explore new ways of building support with your community as we enter a new era of governance.",
-      "12:30–1:15 PM: Let the Deals Flow: VC and Investment Landscape as Told by Investors - Tony Fahden, Jess Sloss (Seed Club), Josh Cornelius (Seed Club), Maria Shen (Electric Capital), Jakub Rusiecki (1KX). A workshop breaking down where capital is moving, what signals matter, and which narratives are already overhyped. Hear about what investors are excited to back next.",
-      "12:30–1:15 PM: DeFi Deals: How to Bootstrap TVL on Base - Zachary Frey, Bryan Colligan (Alpha Growth), Devin Goodkin (Gammaswap). A breakdown of three proven strategies to bootstrap liquidity: offchain deals, onchain incentives, and partnerships. Hear real examples and figure out which playbook fits your protocol.",
-    ],
-    dayActivities: [
-      "All Day: Tattoo Parlour - Choose from a selection of Basecamp inspired flash tattoos in our mini onsite tattoo parlor.",
-      "All Day: Merch Trading Post",
-      "11:00 AM–7:00 PM: Lawn Games",
-      "11:00 AM–8:00 PM: Co-work & Co-create",
-      "4:00–6:00 PM: Pickleball Tournament - A pickleball competition tracked with Bracky. All skill levels are welcome. Paddles and balls provided.",
-    ],
-    nightActivities: [
-      "9:00–11:00 PM: Gaming - A blend of analog and digital gaming experiences, with both casual sessions and bracketed tournaments.",
-      "Varies: Karaoke - Who's ready to sing? Step up, cheer others on, and post these moments to the Base App.",
-      "Varies: Poker - Texas Hold 'Em in the ballroom. Beginners to sharks, all are welcome.",
-      "Varies: Village Green Fire Pits",
+      "8:00 AM: Daily Group Workout w/ Chris",
+      "9:00 AM: Daily Intentions", 
+      "10:00 AM: Navigating Mental Health Struggles w/ David",
+      "11:00 AM: Understanding Addiction w/ Donny",
+      "1:00 PM: Psychospiritual Practices w/ Emanuela",
+      "2:00 PM: Open Journaling",
+      "3:00 PM: Setting and Attaining Goals w/ Kristen",
     ],
   },
   wednesday: {
-    title: "Wednesday 9/17 — Departure Day",
+    title: "Wednesday — Red Door Life Group Schedule",
     events: [
-      "5:00–10:00 AM: Breakfast",
+      "8:00 AM: Daily Group Workout w/ Chris",
+      "9:00 AM: Daily Intentions",
+      "10:00 AM: Yoga/Breathwork/Sound Healing with Monique",
+      "11:00 AM: Somatic Writing w/ Rachel",
+      "1:00 PM: Somatic Grief w/ Rachel", 
+      "2:00 PM: Experiencing Emotions w/ Emanuela",
+      "3:00 PM: 12 Dimensions w/ Donny",
+    ],
+  },
+  thursday: {
+    title: "Thursday — Red Door Life Group Schedule", 
+    events: [
+      "8:00 AM: Daily Group Workout w/ Chris",
+      "9:00 AM: Daily Intentions",
+      "10:00 AM: Spirituality in Recovery w/ Christopher",
+      "11:00 AM: Relationships in Recovery w/ Matthew",
+      "1:00 PM: Trauma Education w/ Emanuela",
+      "2:00 PM: Somatic Process w/ Matthew",
+      "4:00 PM: Learning Pole with Tash (Yoga Room)",
+    ],
+  },
+  friday: {
+    title: "Friday — Red Door Life Group Schedule",
+    events: [
+      "8:00 AM: Daily Group Workout w/ Chris",
+      "9:00 AM: Daily Intentions",
+      "10:00 AM: Yoga/Breathwork/Sound Healing w/ Monique",
+      "11:00 AM: Relapse Prevention w/ Colin",
+      "1:00 PM: House Meeting",
+      "2:00 PM: DBT Skills w/ Sean Patrick",
+      "3:00 PM: Healing Family Dynamics w/ Bianca",
+    ],
+  },
+  saturday: {
+    title: "Saturday — Red Door Life Group Schedule",
+    events: [
+      "11:00 AM: Somatic Imagination w/ Matthew (Group Room)",
     ],
   },
 };
@@ -154,46 +146,21 @@ export const getFullSchedule = tool(
       // Search through all schedule data for relevant content
       const results: string[] = [];
       
-      // Search Monday
-      const monday = SCHEDULE_DATA.monday as any;
-      if (monday.events) {
-        monday.events.forEach((event: string) => {
-          if (event.toLowerCase().includes(queryLower)) {
-            results.push(`Monday: ${event}`);
-          }
-        });
-      }
-      if (monday.workshops) {
-        monday.workshops.forEach((workshop: any) => {
-          const workshopText = `${workshop.title} - ${workshop.description}`;
-          if (workshopText.toLowerCase().includes(queryLower)) {
-            results.push(`Monday: ${workshop.title} (${workshop.time}) - ${workshop.description}`);
-          }
-        });
-      }
-      
-      // Search Tuesday
-      const tuesday = SCHEDULE_DATA.tuesday as any;
-      if (tuesday.events) {
-        tuesday.events.forEach((event: string) => {
-          if (event.toLowerCase().includes(queryLower)) {
-            results.push(`Tuesday: ${event}`);
-          }
-        });
-      }
-      if (tuesday.workshops) {
-        tuesday.workshops.forEach((workshop: any) => {
-          const workshopText = `${workshop.title} - ${workshop.description}`;
-          if (workshopText.toLowerCase().includes(queryLower)) {
-            results.push(`Tuesday: ${workshop.title} (${workshop.time}) - ${workshop.description}`);
-          }
-        });
-      }
+      // Search all days
+      Object.entries(SCHEDULE_DATA).forEach(([dayName, dayData]) => {
+        if (dayData.events) {
+          dayData.events.forEach((event: string) => {
+            if (event.toLowerCase().includes(queryLower)) {
+              results.push(`${dayName.charAt(0).toUpperCase() + dayName.slice(1)}: ${event}`);
+            }
+          });
+        }
+      });
       
       if (results.length > 0) {
-        return `Here are the talks and events related to "${query}":\n\n${results.join('\n\n')}`;
+        return `Here are the sessions related to "${query}":\n\n${results.join('\n\n')}`;
       } else {
-        return `I couldn't find any specific talks about "${query}" in the schedule. Here's the full schedule for you to browse:\n\n${JSON.stringify(SCHEDULE_DATA, null, 2)}`;
+        return `I couldn't find any specific sessions about "${query}" in the schedule. Here's the full weekly schedule for you to browse:\n\n${JSON.stringify(SCHEDULE_DATA, null, 2)}`;
       }
     }
     
@@ -205,49 +172,52 @@ export const getFullSchedule = tool(
       }
     }
     
-    // If no day specified, determine current day based on actual event dates
+    // If no day specified, determine current day based on day of week
     const now = eventDate();
-    const dayOfMonth = now.day;
+    const dayOfWeek = (now.weekdayShort || 'mon').toLowerCase(); // 'mon', 'tue', etc.
     
-    // Map actual Basecamp event dates (September 14-17, 2025)
+    // Map day abbreviations to full day names
     let currentDay = 'monday'; // fallback
-    if (dayOfMonth === 14) currentDay = 'sunday';
-    else if (dayOfMonth === 15) currentDay = 'monday';
-    else if (dayOfMonth === 16) currentDay = 'tuesday';
-    else if (dayOfMonth === 17) currentDay = 'wednesday';
+    if (dayOfWeek === 'mon') currentDay = 'monday';
+    else if (dayOfWeek === 'tue') currentDay = 'tuesday';
+    else if (dayOfWeek === 'wed') currentDay = 'wednesday';
+    else if (dayOfWeek === 'thu') currentDay = 'thursday';
+    else if (dayOfWeek === 'fri') currentDay = 'friday';
+    else if (dayOfWeek === 'sat') currentDay = 'saturday';
+    else if (dayOfWeek === 'sun') currentDay = 'monday'; // Sunday defaults to Monday schedule
     
-    console.log(`🔍 Current date: ${now.toFormat('yyyy-MM-dd HH:mm')} ET (day ${dayOfMonth}), determined day: ${currentDay}`);
+    console.log(`🔍 Current date: ${now.toFormat('yyyy-MM-dd HH:mm')} ET (${dayOfWeek}), determined day: ${currentDay}`);
     
     // Return current day's schedule
     return JSON.stringify(SCHEDULE_DATA[currentDay as keyof typeof SCHEDULE_DATA]);
   },
   {
     name: "GetFullSchedule",
-    description: "Use this tool to get the full schedule for Basecamp 2025. This tool contains the complete accurate schedule data for September 14-17, 2025 (Sunday-Wednesday). Also use for activity questions like 'What time is yoga?', 'When is pickleball?'",
+    description: "Use this tool to get the Red Door Life Group weekly schedule. This tool contains the complete accurate schedule data for Monday through Saturday. Also use for activity questions like 'What time is yoga?', 'When is DBT skills?'",
     schema: z.object({
-      day: z.string().optional().describe("The day to get schedule for: 'Sunday', 'Monday', 'Tuesday', or 'Wednesday'"),
+      day: z.string().optional().describe("The day to get schedule for: 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', or 'Saturday'"),
       query: z.string().optional().describe("The specific question or activity being asked about"),
     }),
   }
 );
 
-export const getSpeakerInfo = tool(
-  async ({ speakerName }: { speakerName: string }) => {
-    console.log("🔄 Getting speaker info...", speakerName);
+export const getFacilitatorInfo = tool(
+  async ({ facilitatorName }: { facilitatorName: string }) => {
+    console.log("🔄 Getting facilitator info...", facilitatorName);
     
-    const speaker = SPEAKERS_DATA[speakerName as keyof typeof SPEAKERS_DATA];
+    const facilitator = FACILITATORS_DATA[facilitatorName as keyof typeof FACILITATORS_DATA];
     
-    if (!speaker) {
-      return `Speaker "${speakerName}" not found. Available speakers: ${Object.keys(SPEAKERS_DATA).join(", ")}`;
+    if (!facilitator) {
+      return `Facilitator "${facilitatorName}" not found. Available facilitators: ${Object.keys(FACILITATORS_DATA).join(", ")}`;
     }
     
-    return `${speakerName} - ${speaker.title}\n\n${speaker.bio}`;
+    return `${facilitatorName} - ${facilitator.title}\n\n${facilitator.bio}`;
   },
   {
-    name: "GetSpeakerInfo",
-    description: "Get information about a specific speaker at Basecamp 2025. Use when someone asks about speakers, their backgrounds, or who is presenting.",
+    name: "GetFacilitatorInfo",
+    description: "Get information about a specific facilitator at Red Door Life Group. Use when someone asks about facilitators, their backgrounds, or who is leading sessions.",
     schema: z.object({
-      speakerName: z.string().describe("The name of the speaker to get information about"),
+      facilitatorName: z.string().describe("The name of the facilitator to get information about"),
     }),
   }
 );
@@ -258,11 +228,13 @@ export const getSpecificDaySchedule = tool(
     const scheduleData = SCHEDULE_DATA[dayKey as keyof typeof SCHEDULE_DATA];
     
     if (!scheduleData) {
-      return `Invalid day. Basecamp 2025 runs September 14-17, 2025. Available days are:
-- Sunday (September 14) - Arrival Day
-- Monday (September 15) - Day 1 (Full Programming)
-- Tuesday (September 16) - Day 2
-- Wednesday (September 17) - Departure`;
+      return `Invalid day. Red Door Life Group runs Monday through Saturday. Available days are:
+- Monday - Full therapy and wellness programming
+- Tuesday - Mental health focus and goal setting
+- Wednesday - Somatic work and emotional processing
+- Thursday - Spirituality and relationships in recovery
+- Friday - Relapse prevention and family dynamics
+- Saturday - Special Somatic Imagination session`;
     }
 
     let result = `Here's the schedule for ${scheduleData.title}:\n\n`;
@@ -272,152 +244,71 @@ export const getSpecificDaySchedule = tool(
       }
     });
     
-    // Add natural prompts for day/night activities on Monday and Tuesday
-    const scheduleDataWithActivities = scheduleData as any;
-    if (scheduleDataWithActivities.dayActivities && scheduleDataWithActivities.nightActivities) {
-      result += `\nWant to know more? Ask me about "Day Activities" or "Night Activities" for ${dayKey === 'monday' ? 'Monday' : 'Tuesday'}!`;
-    }
-    
     return result;
   },
   {
     name: "GetSpecificDaySchedule",
-    description: "CRITICAL: Use this tool for specific day schedule questions like 'What's the schedule for Monday?', 'Monday schedule', 'Tuesday schedule', 'show me Monday', etc. This tool includes the prompts for Day Activities and Night Activities. Parameter: day (string) - The day to get schedule for: 'Sunday', 'Monday', 'Tuesday', or 'Wednesday'",
+    description: "CRITICAL: Use this tool for specific day schedule questions like 'What's the schedule for Monday?', 'Monday schedule', 'Tuesday schedule', 'show me Monday', etc. Parameter: day (string) - The day to get schedule for: 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', or 'Saturday'",
     schema: z.object({
-      day: z.string().describe("The day to get schedule for: 'Sunday', 'Monday', 'Tuesday', or 'Wednesday'"),
+      day: z.string().describe("The day to get schedule for: 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', or 'Saturday'"),
     }),
   }
 );
 
-export const getDayActivities = tool(
-  ({ day, activity }: { day: string; activity?: string }) => {
-    console.log("🔄 Getting day activities...", day, activity);
-    const dayKey = day.toLowerCase();
-    const scheduleData = SCHEDULE_DATA[dayKey as keyof typeof SCHEDULE_DATA] as any;
-    
-    if (!scheduleData || !scheduleData.dayActivities) {
-      return `Day activities are only available for Monday and Tuesday. Available options:
-- Monday Day Activities
-- Tuesday Day Activities`;
-    }
-
-    let result = `☀️ Here are the Day Activities for ${scheduleData.title}:\n\n`;
-    scheduleData.dayActivities.forEach((activityItem: string) => {
-      result += `- ${activityItem}\n`;
-    });
-    
-    // If they asked about a specific activity, highlight it
-    if (activity) {
-      const lowerActivity = activity.toLowerCase();
-      const matchingActivity = scheduleData.dayActivities.find((item: string) => 
-        item.toLowerCase().includes(lowerActivity)
-      );
-      if (matchingActivity) {
-        result += `\n🎯 You asked about ${activity}! It's scheduled: ${matchingActivity}`;
-      }
-    }
-    
-    result += `\nLots to choose from! Let me know if you want details about any specific activity.`;
-    
-    return result;
-  },
-  {
-    name: "GetDayActivities",
-    description: "use this tool when someone is asking for day activities",
-    schema: z.object({
-      day: z.string().describe("The day to get day activities"),
-      activity: z.string().describe("The activity they're asking about"),
-    }),
-  }
-);
 
 export const getActivityTime = tool(
   async ({ activity, day }: { activity: string; day?: string }) => {
     console.log("🔄 Getting activity time...", activity, day);
     
-    // If no day specified, determine current day based on actual event dates
-    let searchDay = day?.toLowerCase();
-    if (!searchDay) {
-      const now = eventDate();
-      const dayOfMonth = now.day;
+    // If no day specified, search all days
+    if (!day) {
+      const activityLower = activity.toLowerCase();
+      const results: string[] = [];
       
-      // Map actual Basecamp event dates (September 14-17, 2025)
-      if (dayOfMonth === 14) searchDay = 'sunday';
-      else if (dayOfMonth === 15) searchDay = 'monday';
-      else if (dayOfMonth === 16) searchDay = 'tuesday';
-      else if (dayOfMonth === 17) searchDay = 'wednesday';
-      else searchDay = 'monday'; // fallback
+      Object.entries(SCHEDULE_DATA).forEach(([dayName, dayData]) => {
+        dayData.events.forEach((event: string) => {
+          if (event.toLowerCase().includes(activityLower)) {
+            results.push(`${dayName.charAt(0).toUpperCase() + dayName.slice(1)}: ${event}`);
+          }
+        });
+      });
       
-      console.log(`🔍 Current date: ${now.toFormat('yyyy-MM-dd HH:mm')} ET (day ${dayOfMonth}), determined day: ${searchDay}`);
+      if (results.length > 0) {
+        return `🎯 ${activity} sessions:\n\n${results.join('\n')}`;
+      } else {
+        return `I couldn't find "${activity}" in the schedule. Try asking about specific sessions like "yoga", "DBT", "12 dimensions", "somatic", etc.`;
+      }
     }
     
-    const scheduleData = SCHEDULE_DATA[searchDay as keyof typeof SCHEDULE_DATA] as any;
+    // Search specific day
+    const dayKey = day.toLowerCase();
+    const scheduleData = SCHEDULE_DATA[dayKey as keyof typeof SCHEDULE_DATA];
     
     if (!scheduleData) {
-      return `Please specify which day you're asking about: Monday or Tuesday.`;
+      return `Invalid day. Please specify Monday, Tuesday, Wednesday, Thursday, Friday, or Saturday.`;
     }
     
     const activityLower = activity.toLowerCase();
-    let foundActivity = '';
-    
-    // Search in day activities
-    if (scheduleData.dayActivities) {
-      const dayMatch = scheduleData.dayActivities.find((item: string) => 
-        item.toLowerCase().includes(activityLower)
-      );
-      if (dayMatch) foundActivity = dayMatch;
-    }
-    
-    // Search in night activities
-    if (!foundActivity && scheduleData.nightActivities) {
-      const nightMatch = scheduleData.nightActivities.find((item: string) => 
-        item.toLowerCase().includes(activityLower)
-      );
-      if (nightMatch) foundActivity = nightMatch;
-    }
+    const foundActivity = scheduleData.events.find((event: string) => 
+      event.toLowerCase().includes(activityLower)
+    );
     
     if (foundActivity) {
-      return `🎯 ${activity} schedule: ${foundActivity}`;
+      return `🎯 ${activity} on ${day}: ${foundActivity}`;
     }
     
-    return `I couldn't find specific timing for "${activity}". Try asking about day activities or night activities for ${searchDay === 'monday' ? 'Monday' : 'Tuesday'}!`;
+    return `I couldn't find "${activity}" on ${day}. Here's what's scheduled that day:\n\n${scheduleData.events.join('\n')}`;
   },
   {
     name: "GetActivityTime",
-    description: "Use when someone asks about timing for a specific activity like 'What time is pickleball?', 'When is yoga?', 'What time?'. Parameters: activity (string) - the activity they're asking about, day (optional string) - Monday or Tuesday",
+    description: "Use when someone asks about timing for a specific activity like 'What time is yoga?', 'When is DBT?', 'What time is group workout?'. Parameters: activity (string) - the activity they're asking about, day (optional string) - specific day to search",
     schema: z.object({
       activity: z.string().describe("The activity they're asking about"),
-      day: z.string().describe("The day to get activity time"),
+      day: z.string().optional().describe("The specific day to search (optional)"),
     }),
   }
 );
 
-export const getNightActivities = tool(
-  ({ day }: { day: string }) => {
-    console.log("🔄 Getting night activities...", day);
-    const dayKey = day.toLowerCase();
-    const scheduleData = SCHEDULE_DATA[dayKey as keyof typeof SCHEDULE_DATA] as any;
-    
-    if (!scheduleData || !scheduleData.nightActivities) {
-      return `Night activities are only available for Monday and Tuesday. Available options:
-- Monday Night Activities  
-- Tuesday Night Activities`;
-    }
 
-    let result = `🌙 Here are the Night Activities for ${scheduleData.title}:\n\n`;
-    scheduleData.nightActivities.forEach((activity: string) => {
-      result += `- ${activity}\n`;
-    });
-    
-    result += `\nPerfect way to wind down the day! Ask me about any of these if you want more info.`;
-    
-    return result;
-  },
-  {
-    name: "GetNightActivities", 
-    description: "use this schedule tool when someone is asking for night activities",
-    schema: z.object({
-      day: z.string().describe("The day to get night activities"),
-    }),
-  }
-);
+
+

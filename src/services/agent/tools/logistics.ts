@@ -1,32 +1,50 @@
 import { tool } from "@langchain/core/tools";
-import { BASECAMP_URL } from "@/constant.js";
+import { RED_DOOR_URL } from "@/constant.js";
 
-export const fetchBasecampInfo = tool(
+export const fetchRedDoorInfo = tool(
   () => {
-    return `Basecamp 2025 Information:
+    return `Red Door Life Information:
 
-Event Dates: September 14-16, 2025
+🏥 ABOUT RED DOOR LIFE:
+Founded in 2005 to improve recovery outcomes for people suffering from substance use disorders and mental health issues. We've redesigned our model of care to be a partnership between clients and their professional advisors and clinicians.
 
-What we know from ${BASECAMP_URL}:
+📞 CONTACT INFORMATION:
+• Phone: 424.242.2760
+• Fax: 323.870.8200
+• Email: info@reddoor.life
+• Website: https://www.reddoor.life
 
-📅 SCHEDULE:
-• Sunday 9/14: Guest arrivals, Welcome Reception (6:00–10:00pm)
-• Monday 9/15: Full day of programming with breakfast, sessions, activities, dinner
-• Tuesday 9/16: Final day with programming and closing activities
+🌟 OUR APPROACH:
+• Flexible lengths of care (not the typical 30/60/90-day "car wash" model)
+• Partnership-based recovery journey
+• Continual learning between client and team
+• Engaging groups, activities, and adventures
+• Integration of recovery into chosen lifestyle
 
-❓ FAQ TOPICS (visit website for details):
-• What is Basecamp?
-• Is Basecamp free? What costs do I cover?
-• When can I expect to hear back about my application?
-• What are you looking for in applicants?
-• What happens if I'm not accepted?
-• Will Basecamp be livestreamed or available online?
+🏛️ SERVICES OFFERED:
+• Residential Services & Detoxification
+• IOP/Outpatient & Telehealth
+• Sober Companions & At Home Services
+• Family Program & Wellness Retreats
 
-For complete details, applications, and FAQ answers: ${BASECAMP_URL}`;
+🎯 SPECIALIZED TREATMENT APPROACHES:
+• The 12 Dimensions Program
+• Trauma Informed Care
+• Client Advocate System
+• Medication Assisted Treatment
+• Harm Reduction & Community Focus
+
+📜 LICENSING & ACCREDITATION:
+• Licensed by California Department of Health Care Services
+• Accredited by Joint Commission (Gold Seal of Approval)
+• Educated by American Society of Addiction Medicine
+• 501(c)(3) Non-Profit Public Charity
+
+For more information, visit https://www.reddoor.life/about`;
   },
   {
-    name: "FetchBasecampInfo",
+    name: "FetchRedDoorInfo",
     description:
-      "Provides all available information about Basecamp 2025 based on the official website",
+      "Provides comprehensive information about Red Door Life treatment center, services, and contact details based on their official website",
   },
 );

@@ -46,7 +46,7 @@ if (!XMTP_ENV) {
 const signer = createSigner(WALLET_KEY);
 const encryptionKey = getEncryptionKeyFromHex(DB_ENCRYPTION_KEY);
 
-console.log(`🚀 Starting Basecamp 2025 Concierge Agent`);
+console.log(`🚀 Starting Thera - Wellness Concierge Assistant`);
 
 // Initialize database for reminders
 initDb();
@@ -288,7 +288,7 @@ async function handleMessage(message: DecodedMessage, client: Client) {
         return;
       }
       
-      // Check for admin command: @rocky addToGroup <address1> <address2> ...
+      // Check for admin command: @thera addToGroup <address1> <address2> ...
       if (cleanContent.toLowerCase().startsWith("addtogroup")) {
         
         // Only allow this command in group chats
@@ -298,11 +298,11 @@ async function handleMessage(message: DecodedMessage, client: Client) {
         }
         
         try {
-          // Parse the command: @rocky addToGroup <address1> <address2> ...
+          // Parse the command: @thera addToGroup <address1> <address2> ...
           const parts = cleanContent.split(' ').filter(part => part.trim() !== '');
           
           if (parts.length < 2) {
-            await conversation.send("❌ Usage: @rocky addToGroup <address1> <address2> ...\n\nExample: @rocky addToGroup 0x123... 0x456...\n\nI'll add them to this group!");
+            await conversation.send("❌ Usage: @thera addToGroup <address1> <address2> ...\n\nExample: @thera addToGroup 0x123... 0x456...\n\nI'll add them to this group!");
             return;
           }
           
@@ -332,7 +332,7 @@ async function handleMessage(message: DecodedMessage, client: Client) {
           
           // Try to create DM with the sender
           const dmConversation = await client.conversations.newDm(senderAddress);
-          const dmMessage = `Hi! I'm starting this DM as requested. You can now message me directly here for private conversations about Basecamp 2025!`;
+          const dmMessage = `Hi! I'm starting this DM as requested. You can now message me directly here for private conversations about Red Door Life Group!`;
           
           await dmConversation.send(dmMessage);
           await conversation.send(`✅ DM started! Check your direct messages.`);
@@ -347,19 +347,18 @@ async function handleMessage(message: DecodedMessage, client: Client) {
       }
       
       // Use AI to detect if this is a single activity keyword
-      const activityDetectionPrompt = `Is this message a single activity keyword that matches one of these activities: yoga, running, pickleball, hiking, builder, payments, trenches, coding, ads, agents, video, roast, mini app, governance, deals, defi, network, coining, students?
+      const activityDetectionPrompt = `Is this message a single activity keyword that matches one of these Red Door Life Group community activities: red door community, sober social, outings, recovery support?
 
 Return with the exact keyword:
-- "hiking", "yoga", "running", "pickleball" (physical activities)
-- "builder", "payments", "trenches", "coding", "ads", "agents", "video", "roast", "mini app", "governance", "deals", "defi", "network", "coining", "students" (workshop sessions)
+- "red door community", "sober social", "outings", "recovery support" (recovery community groups)
 
 Examples that should return NO:
 - "hello"
-- "what time is hiking"
+- "what time is yoga"
 - "show me the schedule"
 - "join groups"
-- "hiking at 7am"
-- "base app" (should be "roast")
+- "recovery meeting at 7am"
+- "red door" (should be "red door community")
 
 Message: "${cleanContent}"
 
@@ -388,7 +387,7 @@ Respond with only the exact keyword or nothing.`;
             const conciergeActionsContent: ActionsContent = {
                 id: `${normalized}_activity_join`,
                 description: `🎯 ${displayName}
-Would you like me to add you to the ${displayName} @ Basecamp group chat?`,
+Would you like me to add you to the ${displayName} Red Door Life Group community?`,
                 actions: [
                   {
                     id: joinActionId || "",
@@ -436,7 +435,7 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
           // Create Quick Actions for welcome message using proper ActionsContent type
           const quickActionsContent: ActionsContent = {
             id: "basecamp_welcome_actions",
-            description: "Hi! I'm Rocky the Basecamp Agent. Here are things I can help you with:",
+            description: "Hi! I'm Thera your Wellness Concierge assistant. Here are things I can help you with:",
             actions: [
               {
                 id: "schedule",
@@ -446,11 +445,6 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
               {
                 id: "wifi",
                 label: "📶 Wifi",
-                style: "secondary"
-              },
-              {
-                id: "shuttles",
-                label: "🚌 Shuttles",
                 style: "secondary"
               },
               {
@@ -480,7 +474,7 @@ Respond with just "YES" if it's a greeting/engagement, or "NO" if it's a specifi
         } catch (quickActionsError) {
           console.error("❌ Error sending Quick Actions:", quickActionsError);
           // Fallback to regular text
-          await conversation.send("Hi! I'm Rocky the Basecamp Agent. I can help you with the Schedule, Set Reminders, or Concierge Support. What would you like to know?");
+          await conversation.send("Hi! I'm Thera your Wellness Concierge assistant. I can help you with the Schedule, Set Reminders, or Concierge Support. What would you like to know?");
           addToConversationHistory(senderInboxId, cleanContent, "Welcome message sent (fallback)");
           return;
         }
@@ -570,7 +564,7 @@ Respond with only the activity keyword or "NO".`;
               id: `${keyword}_question_with_join`,
               description: `${response}
 
-Would you like me to add you to the ${displayName} @ Basecamp group chat?`,
+Would you like me to add you to the ${displayName} Red Door Life Group community?`,
               actions: [
                 {
                   id: joinActionId || "",
@@ -689,7 +683,7 @@ Respond with only "YES" or "NO".`;
             console.error("❌ Error sending Quick Actions:", quickActionsError);
             console.log("🔄 Falling back to regular text response");
             // Fallback to regular text
-            await conversation.send("Hi! I'm Rocky the Basecamp Agent. I can help you with the Schedule, Set Reminders, or Concierge Support. What would you like to know?");
+            await conversation.send("Hi! I'm Thera your Wellness Concierge assistant. I can help you with the Schedule, Set Reminders, or Concierge Support. What would you like to know?");
           }
         } else {
           // Regular text response with follow-up actions
@@ -759,7 +753,7 @@ async function main() {
     console.log(`📅 Agent Context: Today is ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`);
     
     console.log("🔄 Initializing client...");
-    const dbPath = getDbPath("basecamp-agent");
+    const dbPath = getDbPath("thera-agent");
     console.log("🔄 DB path:", dbPath);
     const client = await Client.create(signer, {
       dbEncryptionKey: encryptionKey,
@@ -769,7 +763,7 @@ async function main() {
     });
     
     // Register codecs for Quick Actions
-    console.log("🔄 Client initialized with Quick Actions codecs");
+    console.log("🔄 Thera client initialized with Quick Actions codecs");
     await logAgentDetails(client);
     // Initialize broadcast client
     setBroadcastClient(client);
@@ -890,20 +884,16 @@ async function main() {
       // Handle different action IDs
       switch (actionId) {
         case "schedule":
-          // Use AI agent to provide schedule information
+          // Use AI agent to provide schedule information using the GetFullSchedule tool
           try {
-            // First send the schedule information with the link
-            const scheduleResponse = `
-
-You can view the full schedule in the Basecamp mini app basecamp25.app and sign up for sessions. Feel free to ask me any questions about the schedule and I'll help you craft an epic Basecamp experience.
-
-Examples:
-•⁠  ⁠What's the schedule on Monday?
-•⁠  ⁠When is the Pickleball Tournament on Monday?
-•⁠  ⁠What time is the Welcome Reception?
-•⁠  ⁠What are the day activities?
-
-Just ask naturally - I understand conversational requests!`;
+            // Use the AI agent to get the actual schedule from the tool
+            const scheduleResponse = await agent.run(
+              "Please show me the Red Door Life Group schedule for today and provide some examples of how residents can ask questions about the schedule.",
+              message.senderInboxId,
+              message.conversationId,
+              false,
+              "unknown" // We don't have the sender address in this context, but it's not critical for this tool
+            );
             
             await conversation.send(scheduleResponse);
             
@@ -934,12 +924,12 @@ Just ask naturally - I understand conversational requests!`;
         case "wifi":
           const wifiActionsContent: ActionsContent = {
             id: "wifi_followup_actions",
-            description: `📶 Basecamp 2025 WiFi Information
+            description: `📶 Red Door Life Group WiFi Information
 
-Network: Basecamp25
-Password: 0xBasecamp
+Network: Guest WiFi
+Password: Reddoor2022!
 
-Connect using these credentials to access high-speed internet throughout the venue.
+Connect using these credentials to access internet throughout the facility.
 
 Is there anything else I can help with?`,
             actions: [
@@ -957,39 +947,12 @@ Is there anything else I can help with?`,
           };
           await (conversation as any).send(wifiActionsContent, ContentTypeActions);
           break;
-        case "shuttles":
-          // First send the shuttle information with the link
-          await conversation.send(`🚌 Shuttles
-
-View shuttle information in the Basecamp mini app basecamp25.app.
-
-Need help with shuttle schedules or pickup locations? Let me know!`);
-          
-          // Then send the follow-up actions in a separate message
-          const shuttlesFollowupActionsContent: ActionsContent = {
-            id: "shuttles_followup_actions",
-            description: "Is there anything else I can help with?",
-            actions: [
-              {
-                id: "show_main_menu",
-                label: "✅ Yes",
-                style: "primary"
-              },
-              {
-                id: "end_conversation",
-                label: "❌ No",
-                style: "secondary"
-              }
-            ]
-          };
-          await (conversation as any).send(shuttlesFollowupActionsContent, ContentTypeActions);
-          break;
         case "concierge_support":
           const conciergeActionsContent: ActionsContent = {
             id: "concierge_support_actions",
             description: `Concierge Support
 
-I'm here to help as your Concierge during Basecamp 2025! 
+I'm here to help as your Red Door Life Group assistant! 
 
 Is this an urgent matter that needs immediate attention?`,
             actions: [
@@ -1017,18 +980,12 @@ Is this an urgent matter that needs immediate attention?`,
           addToConversationHistory(message.senderInboxId, "urgent_yes", "User selected urgent support");
           await conversation.send(`Urgent Support
 
-I understand this is urgent! Here are the direct contact numbers for immediate assistance:
+I understand this is urgent! Here is the direct contact number for immediate assistance:
 
-HOTEL FRONT DESKS:
-• SPRUCE PEAK: +1 844-367-1672
-• TÄLTA Lodge: (802) 253-7525
-• AWOL: (802) 277-6200
-• Cady Hill Lodge: (802) 276-8200
-• Field Guide Lodge: (802) 253-8088
-• Outbound: (802) 253-7595
+RED DOOR LIFE GROUP HOUSE PHONE:
+📞 310-648-1382
 
-TRANSPORTATION: +1 (805) 601-6178
-SECURITY (Spruce Peak): 802-461-6990
+For urgent matters, please call this number to speak with staff immediately.
 
 Hope this helps!`);
           
@@ -1054,8 +1011,10 @@ Hope this helps!`);
         case "urgent_no":
           await conversation.send(`Non-Urgent Support
 
-For non-urgent matters, please send a message to:
-concierge@base.org
+For non-urgent matters, please contact Red Door Life:
+
+📞 Main Office: 424.242.2760
+📧 Email: info@reddoor.life
 
 This is the best way to reach our support team for general questions, requests, or non-urgent concerns.`);
           
@@ -1078,13 +1037,13 @@ This is the best way to reach our support team for general questions, requests, 
           };
           await (conversation as any).send(urgentNoFollowupActionsContent, ContentTypeActions);
           break;
-        case "join_yoga":
+        case "join_red_door_community":
           const { addMemberToActivityGroup } = await import("./services/agent/tools/activityGroups.js");
-          const yogaResult = await addMemberToActivityGroup("yoga", message.senderInboxId);
+          const redDoorResult = await addMemberToActivityGroup("Red Door Community", message.senderInboxId);
           
-          const yogaFollowupActionsContent: ActionsContent = {
-            id: "yoga_join_followup",
-            description: `${yogaResult}
+          const redDoorFollowupActionsContent: ActionsContent = {
+            id: "red_door_join_followup",
+            description: `${redDoorResult}
 
 Is there anything else I can help with?`,
             actions: [
@@ -1100,159 +1059,27 @@ Is there anything else I can help with?`,
               }
             ]
           };
-          await (conversation as any).send(yogaFollowupActionsContent, ContentTypeActions);
+          await (conversation as any).send(redDoorFollowupActionsContent, ContentTypeActions);
           break;
-        case "join_running":
-          const { addMemberToActivityGroup: addRunning } = await import("./services/agent/tools/activityGroups.js");
-          const runningResult = await addRunning("running", message.senderInboxId);
-          
-          const runningFollowupActionsContent: ActionsContent = {
-            id: "running_join_followup",
-            description: `${runningResult}
-
-Is there anything else I can help with?`,
-            actions: [
-              {
-                id: "show_main_menu",
-                label: "✅ Yes",
-                style: "primary"
-              },
-              {
-                id: "end_conversation",
-                label: "❌ No",
-                style: "secondary"
-              }
-            ]
-          };
-          await (conversation as any).send(runningFollowupActionsContent, ContentTypeActions);
+        case "join_sober_social":
+          const { addMemberToActivityGroup: addSoberSocial } = await import("./services/agent/tools/activityGroups.js");
+          const soberSocialResult = await addSoberSocial("Sober Social", message.senderInboxId);
+          await conversation.send(soberSocialResult);
           break;
-        case "join_pickleball":
-          const { addMemberToActivityGroup: addPickleball } = await import("./services/agent/tools/activityGroups.js");
-          const pickleballResult = await addPickleball("pickleball", message.senderInboxId);
-          
-          const pickleballFollowupActionsContent: ActionsContent = {
-            id: "pickleball_join_followup",
-            description: `${pickleballResult}
-
-Is there anything else I can help with?`,
-            actions: [
-              {
-                id: "show_main_menu",
-                label: "✅ Yes",
-                style: "primary"
-              },
-              {
-                id: "end_conversation",
-                label: "❌ No",
-                style: "secondary"
-              }
-            ]
-          };
-          await (conversation as any).send(pickleballFollowupActionsContent, ContentTypeActions);
+        case "join_outings":
+          const { addMemberToActivityGroup: addOutings } = await import("./services/agent/tools/activityGroups.js");
+          const outingsResult = await addOutings("Outings", message.senderInboxId);
+          await conversation.send(outingsResult);
           break;
-        case "join_hiking":
-          const { addMemberToActivityGroup: addHiking } = await import("./services/agent/tools/activityGroups.js");
-          const hikingResult = await addHiking("hiking", message.senderInboxId);
-          
-          const hikingFollowupActionsContent: ActionsContent = {
-            id: "hiking_join_followup",
-            description: `${hikingResult}
-
-Is there anything else I can help with?`,
-            actions: [
-              {
-                id: "show_main_menu",
-                label: "✅ Yes",
-                style: "primary"
-              },
-              {
-                id: "end_conversation",
-                label: "❌ No",
-                style: "secondary"
-              }
-            ]
-          };
-          await (conversation as any).send(hikingFollowupActionsContent, ContentTypeActions);
-          break;
-        case "join_builder":
-          const { addMemberToActivityGroup: addBuilder } = await import("./services/agent/tools/activityGroups.js");
-          const builderResult = await addBuilder("builder", message.senderInboxId);
-          await conversation.send(builderResult);
-          break;
-        case "join_payments":
-          const { addMemberToActivityGroup: addPayments } = await import("./services/agent/tools/activityGroups.js");
-          const paymentsResult = await addPayments("payments", message.senderInboxId);
-          await conversation.send(paymentsResult);
-          break;
-        case "join_trenches":
-          const { addMemberToActivityGroup: addTrenches } = await import("./services/agent/tools/activityGroups.js");
-          const trenchesResult = await addTrenches("trenches", message.senderInboxId);
-          await conversation.send(trenchesResult);
-          break;
-        case "join_coding":
-          const { addMemberToActivityGroup: addCoding } = await import("./services/agent/tools/activityGroups.js");
-          const codingResult = await addCoding("coding", message.senderInboxId);
-          await conversation.send(codingResult);
-          break;
-        case "join_ads":
-          const { addMemberToActivityGroup: addAds } = await import("./services/agent/tools/activityGroups.js");
-          const adsResult = await addAds("ads", message.senderInboxId);
-          await conversation.send(adsResult);
-          break;
-        case "join_agents":
-          const { addMemberToActivityGroup: addAgents } = await import("./services/agent/tools/activityGroups.js");
-          const agentsResult = await addAgents("agents", message.senderInboxId);
-          await conversation.send(agentsResult);
-          break;
-        case "join_video":
-          const { addMemberToActivityGroup: addVideo } = await import("./services/agent/tools/activityGroups.js");
-          const videoResult = await addVideo("video", message.senderInboxId);
-          await conversation.send(videoResult);
-          break;
-        case "join_roast":
-          const { addMemberToActivityGroup: addRoast } = await import("./services/agent/tools/activityGroups.js");
-          const roastResult = await addRoast("roast", message.senderInboxId);
-          await conversation.send(roastResult);
-          break;
-        case "join_mini_app":
-          const { addMemberToActivityGroup: addMiniApp } = await import("./services/agent/tools/activityGroups.js");
-          const miniAppResult = await addMiniApp("mini app", message.senderInboxId);
-          await conversation.send(miniAppResult);
-          break;
-        case "join_governance":
-          const { addMemberToActivityGroup: addGovernance } = await import("./services/agent/tools/activityGroups.js");
-          const governanceResult = await addGovernance("governance", message.senderInboxId);
-          await conversation.send(governanceResult);
-          break;
-        case "join_deals":
-          const { addMemberToActivityGroup: addDeals } = await import("./services/agent/tools/activityGroups.js");
-          const dealsResult = await addDeals("deals", message.senderInboxId);
-          await conversation.send(dealsResult);
-          break;
-        case "join_defi":
-          const { addMemberToActivityGroup: addDefi } = await import("./services/agent/tools/activityGroups.js");
-          const defiResult = await addDefi("defi", message.senderInboxId);
-          await conversation.send(defiResult);
-          break;
-        case "join_network":
-          const { addMemberToActivityGroup: addNetwork } = await import("./services/agent/tools/activityGroups.js");
-          const networkResult = await addNetwork("network", message.senderInboxId);
-          await conversation.send(networkResult);
-          break;
-        case "join_coining":
-          const { addMemberToActivityGroup: addCoining } = await import("./services/agent/tools/activityGroups.js");
-          const coiningResult = await addCoining("coining", message.senderInboxId);
-          await conversation.send(coiningResult);
-          break;
-        case "join_students":
-          const { addMemberToActivityGroup: addStudents } = await import("./services/agent/tools/activityGroups.js");
-          const studentsResult = await addStudents("students", message.senderInboxId);
-          await conversation.send(studentsResult);
+        case "join_recovery_support":
+          const { addMemberToActivityGroup: addRecoverySupport } = await import("./services/agent/tools/activityGroups.js");
+          const recoverySupportResult = await addRecoverySupport("Recovery Support", message.senderInboxId);
+          await conversation.send(recoverySupportResult);
           break;
         case "no_group_join":
           const noGroupJoinActionsContent: ActionsContent = {
             id: "no_group_join_followup",
-            description: `👍 No problem! Feel free to ask me about other activities or anything else regarding Basecamp 2025.
+            description: `👍 No problem! Feel free to ask me about the schedule, sessions, or anything else regarding Red Door Life Group.
 
 Is there anything else I can help with?`,
             actions: [
@@ -1356,7 +1183,7 @@ Is there anything else I can help with?`,
           // Send the main quick actions menu again
           const mainMenuActionsContent: ActionsContent = {
             id: "basecamp_welcome_actions",
-            description: "Hi! I'm Rocky the Basecamp Agent. Here are things I can help you with:",
+            description: "Hi! I'm Thera your Wellness Concierge assistant. Here are things I can help you with:",
             actions: [
               {
                 id: "schedule",
@@ -1366,11 +1193,6 @@ Is there anything else I can help with?`,
               {
                 id: "wifi",
                 label: "📶 Wifi",
-                style: "secondary"
-              },
-              {
-                id: "shuttles",
-                label: "🚌 Shuttles",
                 style: "secondary"
               },
               {

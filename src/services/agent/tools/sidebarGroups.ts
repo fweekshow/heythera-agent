@@ -22,7 +22,7 @@ export function setSidebarClient(client: Client<any>) {
 
 /**
  * Handle sidebar group creation request
- * Triggered by: "@rocky sidebar this conversation GroupName" or "@rocky sidebar GroupName"
+ * Triggered by: "@thera sidebar this conversation GroupName" or "@thera sidebar GroupName"
  */
 export async function handleSidebarRequest(
   groupName: string,
@@ -224,17 +224,17 @@ export async function declineSidebarGroup(
 
 /**
  * Parse sidebar command from message content
- * Supports: "@rocky sidebar this conversation GroupName" or "@rocky sidebar GroupName"
+ * Supports: "@thera sidebar this conversation GroupName" or "@thera sidebar GroupName"
  * Also supports cleaned content: "sidebar this conversation GroupName" or "sidebar GroupName"
  */
 export function parseSidebarCommand(content: string): string | null {
-  // Try with @rocky prefix first
-  let sidebarMatch = content.match(/@rocky sidebar (?:this (?:conversation )?)?(.+)/i);
+  // Try with @thera prefix first
+  let sidebarMatch = content.match(/@thera sidebar (?:this (?:conversation )?)?(.+)/i);
   if (sidebarMatch) {
     return sidebarMatch[1].trim();
   }
   
-  // Try without @rocky prefix (for cleaned content from groups)
+  // Try without @thera prefix (for cleaned content from groups)
   sidebarMatch = content.match(/^sidebar (?:this (?:conversation )?)?(.+)/i);
   return sidebarMatch ? sidebarMatch[1].trim() : null;
 }
@@ -243,7 +243,7 @@ export function parseSidebarCommand(content: string): string | null {
  * Check if message is a sidebar creation request
  */
 export function isSidebarRequest(content: string): boolean {
-  return content.toLowerCase().includes('@rocky sidebar') || 
+  return content.toLowerCase().includes('@thera sidebar') || 
          content.toLowerCase().startsWith('sidebar ');
 }
 
