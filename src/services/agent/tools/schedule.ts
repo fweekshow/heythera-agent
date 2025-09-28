@@ -184,7 +184,18 @@ export const getFullSchedule = tool(
     else if (dayOfWeek === 'thu') currentDay = 'thursday';
     else if (dayOfWeek === 'fri') currentDay = 'friday';
     else if (dayOfWeek === 'sat') currentDay = 'saturday';
-    else if (dayOfWeek === 'sun') currentDay = 'monday'; // Sunday defaults to Monday schedule
+    else if (dayOfWeek === 'sun') {
+      // Sunday is a rest day - return special message
+      return JSON.stringify({
+        title: "Sunday — Rest Day",
+        events: [
+          "Red Door Life Group is closed on Sundays for rest and recovery.",
+          "This is a day for residents to rest, reflect, and prepare for the week ahead.",
+          "Regular programming resumes Monday morning at 8:00 AM.",
+          "If you need urgent support, please call the house phone: 310-648-1382"
+        ]
+      });
+    }
     
     console.log(`🔍 Current date: ${now.toFormat('yyyy-MM-dd HH:mm')} ET (${dayOfWeek}), determined day: ${currentDay}`);
     
@@ -228,13 +239,24 @@ export const getSpecificDaySchedule = tool(
     const scheduleData = SCHEDULE_DATA[dayKey as keyof typeof SCHEDULE_DATA];
     
     if (!scheduleData) {
+      if (dayKey === 'sunday') {
+        return `Sunday — Rest Day
+
+Red Door Life Group is closed on Sundays for rest and recovery.
+
+This is a day for residents to rest, reflect, and prepare for the week ahead. Regular programming resumes Monday morning at 8:00 AM.
+
+If you need urgent support, please call the house phone: 310-648-1382`;
+      }
+      
       return `Invalid day. Red Door Life Group runs Monday through Saturday. Available days are:
 - Monday - Full therapy and wellness programming
 - Tuesday - Mental health focus and goal setting
 - Wednesday - Somatic work and emotional processing
 - Thursday - Spirituality and relationships in recovery
 - Friday - Relapse prevention and family dynamics
-- Saturday - Special Somatic Imagination session`;
+- Saturday - Special Somatic Imagination session
+- Sunday - Rest day (no programming)`;
     }
 
     let result = `Here's the schedule for ${scheduleData.title}:\n\n`;
